@@ -18,12 +18,15 @@ def run():
     Run the crew.
     """
     inputs = {
-        'topic': 'AI LLMs',
-        'current_year': str(datetime.now().year)
+        'text': 'Your tweets text here'
     }
     
     try:
-        Agents().crew().kickoff(inputs=inputs)
+        crew_result = Agents().crew().kickoff(inputs=inputs)
+        
+        print("Research result:", crew_result['research_task'])
+        print("Report result:", crew_result['report_task'])
+        print("Twitter result:", crew_result['twitter_redaction_task'])
     except Exception as e:
         raise Exception(f"An error occurred while running the crew: {e}")
 
