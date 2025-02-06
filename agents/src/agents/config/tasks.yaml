@@ -1,20 +1,20 @@
 research_task:
   description: >
-    Make a research about more details of the tweets ```{text}```
+    Make a research about more details of the tweets {text}
   expected_output: >
     A summary about the tweets with more context
   agent: researcher
 
 report_task:
   description: >
-    Create a report based on the ```{summary}``` received from the researcher
+    Create a report based on the summary received from the researcher
   expected_output: >
     A detailed report about the tweets
   agent: reporting_analyst
 
 twitter_redaction_task:
   description: >
-    Review the report ```{report}``` and adapt it into a tweet.
+    Review the report and adapt it into a tweet.
     Make sure the tweet is concise and contains any and all relevant information in a way that can be posted on twitter.
   expected_output: >
     A text with relevant information that can be postable on Twitter 

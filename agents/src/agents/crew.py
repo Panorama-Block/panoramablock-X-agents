@@ -51,7 +51,6 @@ class Agents():
 	def report_task(self) -> Task:
 		return Task(
 			config=self.tasks_config['report_task'],
-			context=[self.research_task],
 			output_file='report.md'
 		)
 
@@ -59,7 +58,6 @@ class Agents():
 	def twitter_redaction_task(self) -> Task:
 		return Task(
 			config=self.tasks_config['twitter_redaction_task'],
-			context=[self.report_task],
 			output_file='tweet.md'
 		)
 
@@ -80,5 +78,6 @@ class Agents():
 				self.report_task,
 				self.twitter_redaction_task
 			],
-			verbose=True
+			verbose=True,
+			process=Process.sequential
 		)
