@@ -31,6 +31,13 @@ class Agents():
 			verbose=True
 		)
 
+	@agent
+	def twitter_redactor(self) -> Agent:
+		return Agent(
+			config=self.agents_config['twitter_redactor'],
+			verbose=True
+		)
+
 	# To learn more about structured task outputs, 
 	# task dependencies, and task callbacks, check out the documentation:
 	# https://docs.crewai.com/concepts/tasks#overview-of-a-task
@@ -41,10 +48,19 @@ class Agents():
 		)
 
 	@task
-	def reporting_task(self) -> Task:
+	def report_task(self) -> Task:
 		return Task(
-			config=self.tasks_config['reporting_task'],
+			config=self.tasks_config['report_task'],
+			context=[self.research_task],
 			output_file='report.md'
+		)
+
+	@task
+	def twitter_redaction_task(self) -> Task:
+		return Task(
+			config=self.tasks_config['twitter_redaction_task'],
+			context=[self.report_task],
+			output_file='tweet.md'
 		)
 
 	@crew
@@ -54,9 +70,15 @@ class Agents():
 		# https://docs.crewai.com/concepts/knowledge#what-is-knowledge
 
 		return Crew(
-			agents=self.agents, # Automatically created by the @agent decorator
-			tasks=self.tasks, # Automatically created by the @task decorator
-			process=Process.sequential,
-			verbose=True,
-			# process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
+			agents=[
+				self.researcher,
+				self.reporting_analyst,
+				self.twitter_redactor
+			],
+			tasks=[
+				self.research_task,
+				self.report_task,
+				self.twitter_redaction_task
+			],
+			verbose=True
 		)

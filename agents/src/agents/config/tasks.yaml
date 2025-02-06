@@ -1,17 +1,21 @@
 research_task:
   description: >
-    Conduct a thorough research about {topic}
-    Make sure you find any interesting and relevant information given
-    the current year is {current_year}.
+    Make a research about more details of the tweets ```{text}```
   expected_output: >
-    A list with 10 bullet points of the most relevant information about {topic}
+    A summary about the tweets with more context
   agent: researcher
 
-reporting_task:
+report_task:
   description: >
-    Review the context you got and expand each topic into a full section for a report.
-    Make sure the report is detailed and contains any and all relevant information.
+    Create a report based on the ```{summary}``` received from the researcher
   expected_output: >
-    A fully fledged report with the main topics, each with a full section of information.
-    Formatted as markdown without '```'
+    A detailed report about the tweets
   agent: reporting_analyst
+
+twitter_redaction_task:
+  description: >
+    Review the report ```{report}``` and adapt it into a tweet.
+    Make sure the tweet is concise and contains any and all relevant information in a way that can be posted on twitter.
+  expected_output: >
+    A text with relevant information that can be postable on Twitter 
+  agent: twitter_redactor
