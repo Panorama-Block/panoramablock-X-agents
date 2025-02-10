@@ -5,7 +5,7 @@ research_task:
     A summary about the tweets with more context
   agent: researcher
 
-report_task:
+reporting_task:
   description: >
     Create a report based on the summary received from the researcher
   expected_output: >

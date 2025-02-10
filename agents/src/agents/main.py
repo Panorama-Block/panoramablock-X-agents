@@ -2,8 +2,6 @@
 import sys
 import warnings
 
-from datetime import datetime
-
 from agents.crew import Agents
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
@@ -22,11 +20,7 @@ def run():
     }
     
     try:
-        crew_result = Agents().crew().kickoff(inputs=inputs)
-        
-        print("Research result:", crew_result['research_task'])
-        print("Report result:", crew_result['report_task'])
-        print("Twitter result:", crew_result['twitter_redaction_task'])
+        Agents().crew().kickoff(inputs=inputs)
     except Exception as e:
         raise Exception(f"An error occurred while running the crew: {e}")
 

@@ -48,12 +48,12 @@ class Agents():
 		)
 
 	@task
-	def report_task(self) -> Task:
+	def reporting_task(self) -> Task:
 		return Task(
-			config=self.tasks_config['report_task'],
+			config=self.tasks_config['reporting_task'],
 			output_file='report.md'
 		)
-
+  
 	@task
 	def twitter_redaction_task(self) -> Task:
 		return Task(
@@ -63,21 +63,14 @@ class Agents():
 
 	@crew
 	def crew(self) -> Crew:
-		"""Creates the Agents crew"""
+		"""Creates the NewAgents crew"""
 		# To learn how to add knowledge sources to your crew, check out the documentation:
 		# https://docs.crewai.com/concepts/knowledge#what-is-knowledge
 
 		return Crew(
-			agents=[
-				self.researcher,
-				self.reporting_analyst,
-				self.twitter_redactor
-			],
-			tasks=[
-				self.research_task,
-				self.report_task,
-				self.twitter_redaction_task
-			],
+			agents=self.agents, # Automatically created by the @agent decorator
+			tasks=self.tasks, # Automatically created by the @task decorator
+			process=Process.sequential,
 			verbose=True,
-			process=Process.sequential
+			# process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
 		)

@@ -8,7 +8,6 @@ researcher:
     deep understanding of the inner workings of cryptocurrencies and blockchain
     systems, enabling you to provide valuable insights and analysis to your
     clients.
-  llm: gemini-pro
 
 reporting_analyst:
   role: >
@@ -19,7 +18,6 @@ reporting_analyst:
     You're a meticulous analyst with a keen eye for detail. You're known for
     your ability to turn complex data into clear and concise reports, making
     it easy for others to understand and act on the information you provide.
-  llm: gemini-pro
 
 twitter_redactor:
   role: >
@@ -31,4 +29,3 @@ twitter_redactor:
     You're a skilled writer with a passion for detail. You're known for
     your ability to turn complex data into clear and concise reports, making
     it easy for others to understand and act on the information you provide.
-  llm: gemini-pro
