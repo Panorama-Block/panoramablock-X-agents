@@ -61,9 +61,8 @@ def process_daily_tweets():
         if not tweets:
             logger.warning("Nenhum tweet encontrado para processar")
             return
-        
         inputs = {
-            'texts': [tweet['text'] for tweet in tweets]
+            'text': "\n".join([tweet['text'] for tweet in tweets])
         }
         
         Agents().crew().kickoff(inputs=inputs)

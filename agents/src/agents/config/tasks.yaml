@@ -1,6 +1,7 @@
 research_task:
   description: >
-    Make a research about more details of the tweets {text}
+    Make a research about more details of the tweets {text}.
+    Each tweet is separated by \n.
   expected_output: >
     A summary about the tweets with more context
   agent: researcher
