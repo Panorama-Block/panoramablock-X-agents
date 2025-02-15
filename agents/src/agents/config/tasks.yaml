@@ -18,5 +18,5 @@ twitter_redaction_task:
     Review the report and adapt it into a tweet.
     Make sure the tweet is concise and contains any and all relevant information in a way that can be posted on twitter.
   expected_output: >
-    A text with relevant information that can be postable on Twitter 
+    Only the text with relevant information to be posted in a single tweet on Twitter. 
   agent: twitter_redactor

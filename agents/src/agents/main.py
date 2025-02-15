@@ -1,12 +1,17 @@
 #!/usr/bin/env python
+import os
 import sys
 import warnings
-from datetime import datetime, timedelta
-from .agents import Agents
-import schedule
-import time
-from pymongo import MongoClient
 import logging
+import time
+from datetime import datetime, timedelta
+from contextlib import contextmanager
+
+from dotenv import load_dotenv
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure, OperationFailure
+from agents.crew import Agents
+import schedule
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
@@ -16,87 +21,145 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+load_dotenv()
+
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017')
+DB_NAME = 'twitter_db'
+TWEETS_COLLECTION = 'tweets'
+TWEETS_ZICO_COLLECTION = 'tweets_zico'
+
+@contextmanager
 def get_mongo_client():
     """
-    Cria uma conexão com o MongoDB
+    Context manager for MongoDB client connection
     """
+    client = None
     try:
-        client = MongoClient('mongodb://localhost:27017/')
-        return client
-    except Exception as e:
-        logger.error(f"Erro ao conectar com MongoDB: {e}")
+        client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        # Verify connection
+        client.admin.command('ping')
+        logger.info("Successfully connected to MongoDB")
+        yield client
+    except ConnectionFailure as e:
+        logger.error(f"Failed to connect to MongoDB: {e}")
         raise
+    except Exception as e:
+        logger.error(f"An error occurred with MongoDB: {e}")
+        raise
+    finally:
+        if client:
+            client.close()
+            logger.debug("MongoDB connection closed")
 
 def fetch_tweets_from_mongo():
     """
-    Busca os tweets do MongoDB das últimas 24 horas
+    Fetches tweets from the MongoDB database.
     """
     try:
-        client = get_mongo_client()
-        db = client['panorama']
-        collection = db['tweets']
-        
-        # Busca tweets das últimas 24 horas
-        yesterday = datetime.now() - timedelta(days=1)
-        tweets = list(collection.find({
-            'created_at': {'$gte': yesterday}
-        }))
-        
-        logger.info(f"Encontrados {len(tweets)} tweets para processar")
-        return tweets
+        with get_mongo_client() as client:
+            db = client[DB_NAME]
+            collection = db[TWEETS_COLLECTION]
+            
+            yesterday = datetime.now() - timedelta(days=1)
+            tweets = list(collection.find({
+                'created_at_datetime': {'$gte': yesterday}
+            }).sort('created_at_datetime', -1))[0:10]  # Sort by newest first
+            
+            logger.info(f"Found {len(tweets)} tweets to process")
+            return tweets
     except Exception as e:
-        logger.error(f"Erro ao buscar tweets: {e}")
+        logger.error(f"Error fetching tweets: {e}")
         raise
-    finally:
-        client.close()
+
+def save_tweet_to_db(tweet):
+    """
+    Saves a generated tweet to MongoDB
+    """
+    try:
+        with get_mongo_client() as client:
+            db = client[DB_NAME]
+            collection = db[TWEETS_ZICO_COLLECTION]
+            
+            tweet_data = {
+                'text': tweet['text'],
+                'created_at_datetime': tweet['created_at_datetime']
+            }
+            
+            result = collection.update_one(
+                {
+                    'text': tweet['text'],
+                    'created_at_datetime': tweet['created_at_datetime']
+                },
+                {'$set': tweet_data},
+                upsert=True
+            )
+            
+            if result.upserted_id:
+                logger.info(f"New tweet saved to MongoDB with id: {result.upserted_id}")
+            else:
+                logger.info(f"Tweet updated in MongoDB. Modified count: {result.modified_count}")
+            
+    except OperationFailure as e:
+        logger.error(f"MongoDB operation failed: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Error saving tweet to MongoDB: {e}")
+        raise
 
 def process_daily_tweets():
     """
-    Função principal que será executada diariamente
+    Main function to be executed daily
     """
     try:
-        logger.info("Iniciando processamento diário de tweets")
+        logger.info("Starting daily tweet processing")
         tweets = fetch_tweets_from_mongo()
         
         if not tweets:
-            logger.warning("Nenhum tweet encontrado para processar")
+            logger.warning("No tweets found to process")
             return
+        
         inputs = {
             'text': "\n".join([tweet['text'] for tweet in tweets])
         }
         
-        Agents().crew().kickoff(inputs=inputs)
+        result = Agents().crew().kickoff(inputs=inputs)
         
-        logger.info("Processamento diário concluído com sucesso")
+        if hasattr(result, 'raw'):
+            tweet_text = result.raw
+        elif isinstance(result, list) and len(result) > 0:
+            tweet_text = result[-1].raw
+        else:
+            tweet_text = str(result)
+        
+        tweet_text = tweet_text.strip()
+        
+        logger.info(f"Generated tweet: {tweet_text}")
+        
+        generated_tweet = {
+            'text': tweet_text,
+            'created_at_datetime': datetime.now()
+        }
+        save_tweet_to_db(generated_tweet)
+        
+        logger.info("Daily tweet processing completed successfully")
     except Exception as e:
-        logger.error(f"Erro durante o processamento diário: {e}")
+        logger.error(f"Error during daily tweet processing: {e}")
+        raise
 
-def run_scheduler():
+def run():
     """
-    Configura e executa o scheduler
+    Configure and run the scheduler
     """
-    schedule.every().day.at("00:00").do(process_daily_tweets)
+    # schedule.every().day.at("00:00").do(process_daily_tweets)
+    # every hour
+    process_daily_tweets()
+    schedule.every().hour.do(process_daily_tweets)
     
     logger.info("Scheduler iniciado. Aguardando execução...")
     
     while True:
         schedule.run_pending()
         time.sleep(60)  # Verifica a cada minuto
-
-def run():
-    """
-    Run the crew.
-    """
-
-    inputs = {
-        "text": "Virtuals' Ecosystem update: Total Market Cap is $1.23B, with a 24h Market Cap Change of -21.92%. The 24h Trading Volume stands at $342.94M. Stay informed, stay ahead! - Vain"
-    }
-
-    try:
-        Agents().crew().kickoff(inputs=inputs)
-    except Exception as e:
-        raise Exception(f"An error occurred while running the crew: {e}")
-
 
 def train():
     """
@@ -135,4 +198,4 @@ def test():
         raise Exception(f"An error occurred while testing the crew: {e}")
 
 if __name__ == "__main__":
-    run_scheduler()
+    run()
