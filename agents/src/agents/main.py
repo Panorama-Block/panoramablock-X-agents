@@ -80,24 +80,8 @@ def save_tweet_to_db(tweet):
             db = client[DB_NAME]
             collection = db[TWEETS_ZICO_COLLECTION]
             
-            tweet_data = {
-                'text': tweet['text'],
-                'created_at_datetime': tweet['created_at_datetime']
-            }
-            
-            result = collection.update_one(
-                {
-                    'text': tweet['text'],
-                    'created_at_datetime': tweet['created_at_datetime']
-                },
-                {'$set': tweet_data},
-                upsert=True
-            )
-            
-            if result.upserted_id:
-                logger.info(f"New tweet saved to MongoDB with id: {result.upserted_id}")
-            else:
-                logger.info(f"Tweet updated in MongoDB. Modified count: {result.modified_count}")
+            result = collection.insert_one(tweet)
+            logger.info(f"Tweet saved to MongoDB with id: {result.inserted_id}")
             
     except OperationFailure as e:
         logger.error(f"MongoDB operation failed: {e}")
@@ -105,6 +89,57 @@ def save_tweet_to_db(tweet):
     except Exception as e:
         logger.error(f"Error saving tweet to MongoDB: {e}")
         raise
+
+def split_tweet_in_parts(tweet: str) -> list[str]:
+    """
+    Split a tweet into parts based on 'Part X' markers.
+    Excludes the part headers and ensures each part is within character limit.
+    Also removes any asterisks from the text.
+    """
+    import re
+
+    tweet = tweet.replace('*', '')
+    
+    part_markers = list(re.finditer(r'Part \d+ \([^)]+\):', tweet))
+    
+    if not part_markers:
+        logger.warning("No part markers found, treating as single part")
+        return [f"{tweet.strip()} 1/1"]
+    
+    sections = []
+    for i in range(len(part_markers)):
+        start = part_markers[i].end()
+        
+        if i == len(part_markers) - 1:
+            content = tweet[start:].strip()
+        else:
+            end = part_markers[i + 1].start()
+            content = tweet[start:end].strip()
+        
+        sections.append(content)
+    
+    result = []
+    total_parts = len(sections)
+    
+    for i, section in enumerate(sections, 1):
+        cleaned_section = '\n'.join(line for line in section.split('\n') if line.strip())
+        
+        suffix = f" {i}/{total_parts}"
+        max_length = 200 - len(suffix)
+        
+        if len(cleaned_section) > max_length:
+            cut_index = cleaned_section.rfind('\n', 0, max_length)
+            if cut_index == -1:
+                cut_index = cleaned_section.rfind('. ', 0, max_length)
+            if cut_index == -1:
+                cut_index = max_length
+            
+            cleaned_section = cleaned_section[:cut_index].strip()
+        
+        part = f"{cleaned_section.strip()}{suffix}"
+        result.append(part)
+    
+    return result
 
 def process_daily_tweets():
     """
@@ -132,12 +167,17 @@ def process_daily_tweets():
             tweet_text = str(result)
         
         tweet_text = tweet_text.strip()
+        tweet_parts = split_tweet_in_parts(tweet_text)
         
-        logger.info(f"Generated tweet: {tweet_text}")
+        logger.info(f"Generated tweet (in {len(tweet_parts)} parts):")
+        for part in tweet_parts:
+            logger.info(f"Part: {part}")
         
         generated_tweet = {
-            'text': tweet_text,
-            'created_at_datetime': datetime.now()
+            'original_text': tweet_text,
+            'parts': tweet_parts,
+            'created_at_datetime': datetime.now(),
+            'posted': False
         }
         save_tweet_to_db(generated_tweet)
         
@@ -150,16 +190,14 @@ def run():
     """
     Configure and run the scheduler
     """
-    # schedule.every().day.at("00:00").do(process_daily_tweets)
-    # every hour
-    process_daily_tweets()
-    schedule.every().hour.do(process_daily_tweets)
+    
+    schedule.every().day.at("10:00").do(process_daily_tweets)
     
     logger.info("Scheduler iniciado. Aguardando execução...")
     
     while True:
         schedule.run_pending()
-        time.sleep(60)  # Verifica a cada minuto
+        time.sleep(60)
 
 def train():
     """

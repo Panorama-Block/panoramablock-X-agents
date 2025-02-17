@@ -15,34 +15,42 @@ reporting_task:
 
 twitter_redaction_task:
   description: >
-    Review the report and adapt it into a tweet.
-    Make sure the tweet is concise and contains any and all relevant information in a way that can be posted on twitter.
+    Review the report and adapt it into a tweet divided into multiple parts.
+    Make sure each part is concise and contains relevant information that can be posted as a thread on twitter.
+    The content should be naturally divided into three sections that make sense when read together or separately.
   expected_output: >
-    Only the text with relevant information to be posted in a single tweet on Twitter.
-    Use this structure as a example of what the tweet should look like:
+    Generate parts of the tweet that will be posted as a thread. Each part should be self-contained but also flow naturally when read in sequence.
+    Each part need to be less than 200 characters.
+    Add emojis when necessary.
+    Use this structure as an example, maintaining good spacing and ensuring each part has a clear theme with respect to the characters limit:
+
+    Part 1 (Market Overview):
     📊 Crypto Market
 
     Mixed situation - caution advised
     Dip buying present but lacks momentum
     Watch trading volume for breakout signals
 
+    #crypto #marketanalysis
+
+    Part 2 (Project Updates):
     🤖 Project Highlights
 
     Bittensor/Virtuals: Focus on trust & AI scoring
     Ronin Network consolidating
     Vain: Market cap down to $1.3B
 
-    🌉 Base Network Booming
+    #crypto #projects
 
-    $5B bridged
-    10M weekly transactions
-    $4B TVL
-    Goal: 250 mgas/s by 2025
+    Part 3 (Network & Alerts):
+    🌉 Base Network & Alerts
 
-    ⚠ Alerts
+    Network Stats:
+    - $5B bridged
+    - $4B TVL
+    - 10M weekly tx
 
-    Beware of memecoin rug pulls
-    Bet against Walz Senate run appears mispriced
+    Beware: Memecoin risks high
 
-    #crypto #marketanalysis #blockchain
+    #blockchain #defi
   agent: twitter_redactor
