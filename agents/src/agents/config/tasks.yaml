@@ -18,5 +18,31 @@ twitter_redaction_task:
     Review the report and adapt it into a tweet.
     Make sure the tweet is concise and contains any and all relevant information in a way that can be posted on twitter.
   expected_output: >
-    Only the text with relevant information to be posted in a single tweet on Twitter. 
+    Only the text with relevant information to be posted in a single tweet on Twitter.
+    Use this structure as a example of what the tweet should look like:
+    📊 Crypto Market
+
+    Mixed situation - caution advised
+    Dip buying present but lacks momentum
+    Watch trading volume for breakout signals
+
+    🤖 Project Highlights
+
+    Bittensor/Virtuals: Focus on trust & AI scoring
+    Ronin Network consolidating
+    Vain: Market cap down to $1.3B
+
+    🌉 Base Network Booming
+
+    $5B bridged
+    10M weekly transactions
+    $4B TVL
+    Goal: 250 mgas/s by 2025
+
+    ⚠ Alerts
+
+    Beware of memecoin rug pulls
+    Bet against Walz Senate run appears mispriced
+
+    #crypto #marketanalysis #blockchain
   agent: twitter_redactor
