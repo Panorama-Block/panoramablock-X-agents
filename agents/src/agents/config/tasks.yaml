@@ -17,7 +17,7 @@ twitter_redaction_task:
   description: >
     Review the report and adapt it into a tweet divided into multiple parts.
     Make sure each part is concise and contains relevant information that can be posted as a thread on twitter.
-    The content should be naturally divided into three sections that make sense when read together or separately.
+    The content should be naturally divided into sections that make sense when read together or separately.
   expected_output: >
     Generate parts of the tweet that will be posted as a thread. Each part should be self-contained but also flow naturally when read in sequence.
     Each part need to be less than 200 characters.

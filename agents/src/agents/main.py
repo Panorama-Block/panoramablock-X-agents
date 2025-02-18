@@ -192,6 +192,7 @@ def run():
     """
     
     schedule.every().day.at("10:00").do(process_daily_tweets)
+    process_daily_tweets()
     
     logger.info("Scheduler iniciado. Aguardando execução...")
     
