@@ -12,6 +12,7 @@ from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
 from agents.crew import Agents
 import schedule
+import pytz
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pysbd")
 
@@ -36,7 +37,6 @@ def get_mongo_client():
     client = None
     try:
         client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
-        # Verify connection
         client.admin.command('ping')
         logger.info("Successfully connected to MongoDB")
         yield client
@@ -60,10 +60,10 @@ def fetch_tweets_from_mongo():
             db = client[DB_NAME]
             collection = db[TWEETS_COLLECTION]
             
-            yesterday = datetime.now() - timedelta(days=1)
+            last_12h = datetime.now() - timedelta(hours=12)
             tweets = list(collection.find({
-                'created_at_datetime': {'$gte': yesterday}
-            }).sort('created_at_datetime', -1))[0:10]  # Sort by newest first
+                'created_at_datetime': {'$gte': last_12h}
+            }).sort('created_at_datetime', -1))
             
             logger.info(f"Found {len(tweets)} tweets to process")
             return tweets
@@ -104,7 +104,7 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
     
     if not part_markers:
         logger.warning("No part markers found, treating as single part")
-        return [f"{tweet.strip()} 1/1"]
+        return [f"{tweet.strip()}"]
     
     sections = []
     for i in range(len(part_markers)):
@@ -136,7 +136,7 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
             
             cleaned_section = cleaned_section[:cut_index].strip()
         
-        part = f"{cleaned_section.strip()}{suffix}"
+        part = f"{cleaned_section.strip()}"
         result.append(part)
     
     return result
@@ -185,13 +185,22 @@ def process_daily_tweets():
     except Exception as e:
         logger.error(f"Error during daily tweet processing: {e}")
         raise
+    
+def should_run_task(scheduled_utc_hour: int) -> bool:
+    """
+    Verifica se a task deve rodar baseado na hora UTC especificada
+    """
+    utc_now = datetime.now(pytz.UTC)
+    return utc_now.hour == scheduled_utc_hour
 
 def run():
     """
     Configure and run the scheduler
     """
     
-    schedule.every().day.at("10:00").do(process_daily_tweets)
+    schedule.every().hour.at(":00").do(lambda: should_run_task(12) and process_daily_tweets())
+    schedule.every().hour.at(":00").do(lambda: should_run_task(0) and process_daily_tweets())
+    
     process_daily_tweets()
     
     logger.info("Scheduler iniciado. Aguardando execução...")
