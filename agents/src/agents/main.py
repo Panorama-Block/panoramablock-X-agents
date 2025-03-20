@@ -140,17 +140,15 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
         
         part = f"{cleaned_section.strip()}"
     
-        footer = f"🧵 ({i+1}/{len(sections)})"
+        footer = f"🧵 ({i}/{len(sections)})"
         
-        if i == 0:
+        if i == 1:
             formatted_part = f"{header}\n\n{part}\n\n{footer}"
         else:
             formatted_part = f"{part}\n\n{footer}"
             
         result.append(formatted_part)
         
-    print(result)
-    
     return result
 
 def process_daily_tweets():
