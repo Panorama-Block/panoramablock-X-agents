@@ -4,6 +4,7 @@ research_task:
     Each tweet is separated by \n.
   expected_output: >
     A summary about the tweets with more context
+    Don't add bets and sports related content
   agent: researcher
 
 reporting_task:
@@ -11,6 +12,7 @@ reporting_task:
     Create a report based on the summary received from the researcher
   expected_output: >
     A detailed report about the tweets
+    Don't add bets and sports related content
   agent: reporting_analyst
 
 twitter_redaction_task:
@@ -22,6 +24,7 @@ twitter_redaction_task:
     Generate parts of the tweet that will be posted as a thread. Each part should be self-contained but also flow naturally when read in sequence.
     Each part need to be less than 200 characters.
     Don't add notations like 1/2 or 2/2 in the parts of the tweet, but mantain the same structure.
+    Don't add bets and sports related content
     Add emojis when necessary.
     Use this structure as an example, maintaining good spacing and ensuring each part has a clear theme with respect to the characters limit:
 
