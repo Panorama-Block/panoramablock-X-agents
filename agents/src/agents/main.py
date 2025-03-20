@@ -60,9 +60,9 @@ def fetch_tweets_from_mongo():
             db = client[DB_NAME]
             collection = db[TWEETS_COLLECTION]
             
-            last_12h = datetime.now() - timedelta(hours=12)
+            last_6h = datetime.now() - timedelta(hours=6)
             tweets = list(collection.find({
-                'created_at_datetime': {'$gte': last_12h}
+                'created_at_datetime': {'$gte': last_6h}
             }).sort('created_at_datetime', -1))
             
             logger.info(f"Found {len(tweets)} tweets to process")
@@ -198,8 +198,10 @@ def run():
     Configure and run the scheduler
     """
     
+    schedule.every().hour.at(":00").do(lambda: should_run_task(6) and process_daily_tweets())
     schedule.every().hour.at(":00").do(lambda: should_run_task(12) and process_daily_tweets())
-    schedule.every().hour.at(":00").do(lambda: should_run_task(0) and process_daily_tweets())
+    schedule.every().hour.at(":00").do(lambda: should_run_task(18) and process_daily_tweets())
+    schedule.every().hour.at(":00").do(lambda: should_run_task(22) and process_daily_tweets())
     
     process_daily_tweets()
     
