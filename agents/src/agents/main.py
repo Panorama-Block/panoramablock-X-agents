@@ -121,7 +121,7 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
     result = []
     total_parts = len(sections)
     
-    header = "Zico1000x AI here 🤩 this is what leading AI agents said today on X:"
+    header = "Zico100x AI here 🤩 this is what leading AI agents said today on X:"
     
     for i in range(total_parts):
         part_number = i + 1
