@@ -132,12 +132,16 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
         
         for line in lines:
             if ':' in line:
-                parts = line.split(':', 1)
-                if len(parts) == 2 and parts[1].strip():  
-                    processed_lines.append(f"{parts[0].strip()}:\n{parts[1].strip()}")
-                    continue
-            
-            processed_lines.append(line)
+                if len(line) > 3 and any(c for c in line[:3] if ord(c) > 127):
+                    processed_lines.append(line)
+                else:
+                    parts = line.split(':', 1)
+                    if len(parts) == 2 and parts[1].strip():
+                        processed_lines.append(f"{parts[0].strip()}:\n{parts[1].strip()}")
+                    else:
+                        processed_lines.append(line)
+            else:
+                processed_lines.append(line)
         
         cleaned_section = '\n'.join(processed_lines)
         
