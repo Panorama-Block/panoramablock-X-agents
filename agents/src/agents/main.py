@@ -130,15 +130,11 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
         lines = cleaned_section.split('\n')
         processed_lines = []
         
-        for line in lines:
-            has_emoji = any(c for c in line[:3] if ord(c) > 127)
-            
-            if ':' in line:
-                parts = line.split(':', 1)
-                if len(parts) == 2 and parts[1].strip():
-                    processed_lines.append(f"{parts[0].strip()}:\n{parts[1].strip()}")
-                else:
-                    processed_lines.append(line)
+        for i, line in enumerate(lines):
+            if i == 0 and any(c for c in line[:3] if ord(c) > 127):
+                processed_lines.append(line)
+                if i + 1 < len(lines) and lines[i + 1].strip():
+                    processed_lines.append("") 
             else:
                 processed_lines.append(line)
         
