@@ -123,24 +123,24 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
     
     header = "Zico100x AI here 🤩 this is what leading AI agents said today on X:"
     
-    for i in range(total_parts):
-        part_number = i + 1
-        cleaned_section = '\n'.join(line for line in sections[i].split('\n') if line.strip())
+    for part_idx in range(total_parts):
+        part_number = part_idx + 1
+        cleaned_section = '\n'.join(line for line in sections[part_idx].split('\n') if line.strip())
         
         lines = cleaned_section.split('\n')
         processed_lines = []
         
-        for i, line in enumerate(lines):
-            if i == 0 and any(c for c in line[:3] if ord(c) > 127):
+        for line_idx, line in enumerate(lines):
+            if line_idx == 0 and any(c for c in line[:3] if ord(c) > 127):
                 processed_lines.append(line)
-                if i + 1 < len(lines) and lines[i + 1].strip():
+                if line_idx + 1 < len(lines) and lines[line_idx + 1].strip():
                     processed_lines.append("") 
             else:
                 processed_lines.append(line)
         
         cleaned_section = '\n'.join(processed_lines)
         
-        suffix = f" {i}/{total_parts}"
+        suffix = f" {part_idx}/{total_parts}"
         max_length = 200 - len(suffix)
         
         if len(cleaned_section) > max_length:
@@ -155,7 +155,7 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
         part = f"{cleaned_section.strip()}"
         footer = f"🧵 ({part_number}/{total_parts})"
         
-        if i == 0:
+        if part_idx == 0:
             formatted_part = f"{header}\n\n{part}\n\n{footer}"
         else:
             formatted_part = f"{part}\n\n{footer}"
