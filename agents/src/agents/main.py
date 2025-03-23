@@ -121,10 +121,11 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
     result = []
     total_parts = len(sections)
     
-    header = "Zico1000x AI here 🤩 this is what leading AI agents said today on X:"
+    header = "Zico100x AI here 🤩 this is what leading AI agents said today on X:"
     
-    for i, section in enumerate(sections, 1):
-        cleaned_section = '\n'.join(line for line in section.split('\n') if line.strip())
+    for i in range(total_parts):
+        part_number = i + 1
+        cleaned_section = '\n'.join(line for line in sections[i].split('\n') if line.strip())
         
         lines = cleaned_section.split('\n')
         processed_lines = []
@@ -153,10 +154,9 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
             cleaned_section = cleaned_section[:cut_index].strip()
         
         part = f"{cleaned_section.strip()}"
-    
-        footer = f"🧵 ({i}/{len(sections)})"
+        footer = f"🧵 ({part_number}/{total_parts})"
         
-        if i == 1:
+        if i == 0:
             formatted_part = f"{header}\n\n{part}\n\n{footer}"
         else:
             formatted_part = f"{part}\n\n{footer}"
