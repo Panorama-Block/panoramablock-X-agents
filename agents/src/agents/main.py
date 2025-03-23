@@ -126,6 +126,20 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
     for i, section in enumerate(sections, 1):
         cleaned_section = '\n'.join(line for line in section.split('\n') if line.strip())
         
+        lines = cleaned_section.split('\n')
+        processed_lines = []
+        
+        for line in lines:
+            if ':' in line:
+                parts = line.split(':', 1)
+                if len(parts) == 2 and parts[1].strip():  
+                    processed_lines.append(f"{parts[0].strip()}:\n{parts[1].strip()}")
+                    continue
+            
+            processed_lines.append(line)
+        
+        cleaned_section = '\n'.join(processed_lines)
+        
         suffix = f" {i}/{total_parts}"
         max_length = 200 - len(suffix)
         
