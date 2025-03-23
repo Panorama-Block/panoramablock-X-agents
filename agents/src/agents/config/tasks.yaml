@@ -23,6 +23,7 @@ twitter_redaction_task:
   expected_output: >
     Generate parts of the tweet that will be posted as a thread. Each part should be self-contained but also flow naturally when read in sequence.
     Each part needs to be less than 200 characters.
+    Try to generate no more than 8 parts.
     Don't add notations like 1/2 or 2/2 in the parts of the tweet, but maintain the same structure.
     Don't add bets and sports related content
     Only speak of political topics if have relation to crypto
