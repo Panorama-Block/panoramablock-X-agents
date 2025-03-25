@@ -93,6 +93,9 @@ def save_tweet_to_db(tweet):
 def split_tweet_in_parts(tweet: str) -> list[str]:
     """
     Split a tweet into parts based on 'Part X' markers.
+    Supports two formats:
+    - "Part X (title):" format
+    - "Part X:" format
     Excludes the part headers and ensures each part is within character limit.
     Also removes any asterisks from the text.
     """
@@ -100,7 +103,7 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
 
     tweet = tweet.replace('*', '')
     
-    part_markers = list(re.finditer(r'Part \d+ \([^)]+\):', tweet))
+    part_markers = list(re.finditer(r'Part \d+(?:\s+\([^)]+\))?:', tweet))
     
     if not part_markers:
         logger.warning("No part markers found, treating as single part")
