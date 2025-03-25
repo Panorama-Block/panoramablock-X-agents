@@ -143,6 +143,19 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
         
         cleaned_section = '\n'.join(processed_lines)
         
+        if '#' in cleaned_section:
+            lines = cleaned_section.split('\n')
+            has_hashtag_line = any(line.strip().startswith('#') for line in lines)
+            
+            if not has_hashtag_line:
+                hashtag_pattern = r'((?:\s|^)#\w+)+'
+                hashtags = re.findall(hashtag_pattern, cleaned_section)
+                
+                if hashtags:
+                    main_text = re.sub(hashtag_pattern, '', cleaned_section).strip()
+                    hashtag_line = ' '.join([tag.strip() for tag in hashtags])
+                    cleaned_section = f"{main_text}\n\n{hashtag_line}"
+        
         suffix = f" {part_idx}/{total_parts}"
         max_length = 200 - len(suffix)
         
