@@ -9,7 +9,8 @@ dependencies = [
     "pymongo>=4.6.1",
     "python-dotenv>=1.0.0",
     "schedule>=1.2.1",
-    "pytz>=2024.1"
+    "pytz>=2024.1",
+    "google-genai>=0.1.0"
 ]
 
 [project.scripts]

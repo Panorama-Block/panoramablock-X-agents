@@ -61,3 +61,27 @@ twitter_redaction_task:
 
     #blockchain #defi
   agent: twitter_redactor
+
+image_generation_task:
+  description: >
+    Generate images for the first part of the tweet thread.
+    Do not generate graphic content.
+    Generate a fictitious image that represents the content of the first part of the tweet thread.
+  expected_output: >
+    The text generated before with only the image attached at the end
+    Using the same structure received
+  agent: image_generator
+# image_generation_task:
+#   description: >
+#     Generate images for each part of the tweet thread using Gemini Image Generator.
+#     Each image should visually represent the main theme or content of its respective tweet part.
+#     The images should maintain consistency in style and theme across the thread.
+#   expected_output: >
+#     A list of generated images that match each tweet part's content.
+#     Each image should be:
+#     - Relevant to the tweet part's content
+#     - Visually appealing and professional
+#     - Consistent with crypto/blockchain theme when applicable
+#     - Safe for work and appropriate for social media
+#     - Generated in a style that matches the tweet's tone
+#   agent: image_generator
