@@ -6,6 +6,7 @@ import logging
 import time
 from datetime import datetime, timedelta
 from contextlib import contextmanager
+from gridfs import GridFS
 
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -77,12 +78,19 @@ def fetch_tweets_from_mongo():
 
 def save_tweet_to_db(tweet):
     """
-    Saves a generated tweet to MongoDB
+    Saves a generated tweet to MongoDB with image reference if available
     """
     try:
         with get_mongo_client() as client:
             db = client[DB_NAME]
             collection = db[TWEETS_ZICO_COLLECTION]
+            
+            image_path = "image.png"
+            if os.path.exists(image_path):
+                image_id = save_image_to_gridfs(image_path)
+                tweet['image_id'] = image_id
+                os.remove(image_path)
+                logger.info("Local image removed after saving to GridFS")
 
             result = collection.insert_one(tweet)
             logger.info(f"Tweet saved to MongoDB with id: {result.inserted_id}")
@@ -92,6 +100,28 @@ def save_tweet_to_db(tweet):
         raise
     except Exception as e:
         logger.error(f"Error saving tweet to MongoDB: {e}")
+        raise
+
+
+def save_image_to_gridfs(image_path: str) -> str:
+    """
+    Save image to GridFS and return its ID
+    """
+    try:
+        with get_mongo_client() as client:
+            db = client[DB_NAME]
+            fs = GridFS(db)
+            
+            if not os.path.exists(image_path):
+                raise FileNotFoundError(f"Image not found: {image_path}")
+            
+            with open(image_path, 'rb') as f:
+                file_id = fs.put(f.read(), filename=os.path.basename(image_path))
+                logger.info(f"Image saved to GridFS with id: {file_id}")
+                return str(file_id)
+                
+    except Exception as e:
+        logger.error(f"Error saving image to GridFS: {e}")
         raise
 
 
@@ -194,6 +224,10 @@ def process_daily_tweets():
     """
     try:
         logger.info("Starting daily tweet processing")
+        
+        # Clear old images
+        cleanup_old_images()
+        
         tweets = fetch_tweets_from_mongo()
 
         if not tweets:
@@ -224,24 +258,54 @@ def process_daily_tweets():
             "created_at_datetime": datetime.now(),
             "posted": False,
         }
-        # save_tweet_to_db(generated_tweet)
+        image_agent = Agents().image_crew().kickoff(inputs={'text': tweet_parts[0]})
+        
+        save_tweet_to_db(generated_tweet)
         
         logger.info("Generating image for the tweet")
-        image_agent = Agents().image_crew().kickoff(inputs={'text': tweet_parts[0]})
         
         logger.info(f"Image generation result: {image_agent}")
         
+        logger.info("Daily tweet processing completed successfully")
+        
         return tweet_text, image_agent
         
-        logger.info("Daily tweet processing completed successfully")
     except Exception as e:
         logger.error(f"Error during daily tweet processing: {e}")
         raise
 
 
+def cleanup_old_images():
+    """
+    Remove images older than 3 days from GridFS
+    """
+    try:
+        with get_mongo_client() as client:
+            db = client[DB_NAME]
+            fs = GridFS(db)
+            
+            # Data 3 days ago
+            three_days_ago = datetime.now() - timedelta(days=3)
+            
+            # Find all files older than 3 days
+            old_files = fs.find({"uploadDate": {"$lt": three_days_ago}})
+            
+            count = 0
+            for file in old_files:
+                fs.delete(file._id)
+                count += 1
+            
+            if count > 0:
+                logger.info(f"Removed {count} images older than 3 days from GridFS")
+            
+    except Exception as e:
+        logger.error(f"Error cleaning up old images: {e}")
+        raise
+
+
 def should_run_task(scheduled_utc_hour: int) -> bool:
     """
-    Verifica se a task deve rodar baseado na hora UTC especificada
+    Checks if the task should run based on the specified UTC hour
     """
     utc_now = datetime.now(pytz.UTC)
     return utc_now.hour == scheduled_utc_hour

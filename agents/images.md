@@ -1,3 +1,1 @@
-```
-gemini-native-image.png
-```
+image.png

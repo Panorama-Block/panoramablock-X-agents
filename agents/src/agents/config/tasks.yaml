@@ -68,8 +68,8 @@ image_generation_task:
     Do not generate graphic content.
     Generate a fictitious image that represents the content of the first part of the tweet thread.
   expected_output: >
-    The text generated before with only the image attached at the end
-    Using the same structure received
+    The tool output
+    A link of the generated image
   agent: image_generator
 # image_generation_task:
 #   description: >

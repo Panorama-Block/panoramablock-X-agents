@@ -34,9 +34,9 @@ class GeminiImageDirectTool(BaseTool):
             )
             for generated_image in response.generated_images:
                 image = Image.open(BytesIO(generated_image.image.image_bytes))
-                image.save('gemini-native-image.png')
+                image.save('image.png')
                 image.show()
                 
-            return 'gemini-native-image.png'
+            return 'image.png'
         except Exception as e:
             return f"Erro ao gerar a imagem: {e}"
