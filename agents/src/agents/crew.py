@@ -1,5 +1,6 @@
 from crewai import Agent, Crew, Process, Task
 from crewai.project import CrewBase, agent, crew, task
+from agents.tools.custom_tool import GeminiImageDirectTool
 
 # If you want to run a snippet of code before or after the crew starts, 
 # you can use the @before_kickoff and @after_kickoff decorators
@@ -38,6 +39,14 @@ class Agents():
 			verbose=True
 		)
 
+	@agent
+	def image_generator(self) -> Agent:
+		return Agent(
+			config=self.agents_config['image_generator'],
+			tools=[GeminiImageDirectTool()],
+			verbose=True
+		)
+
 	# To learn more about structured task outputs, 
 	# task dependencies, and task callbacks, check out the documentation:
 	# https://docs.crewai.com/concepts/tasks#overview-of-a-task
@@ -61,15 +70,36 @@ class Agents():
 			output_file='tweet.md'
 		)
 
+	@task
+	def image_generation_task(self) -> Task:
+		return Task(
+			config=self.tasks_config['image_generation_task'],
+			output_file='images.md'
+		)
+
 	@crew
-	def crew(self) -> Crew:
-		"""Creates the NewAgents crew"""
+	def tweet_crew(self) -> Crew:
+		"""Creates the Tweet Generation crew"""
 		# To learn how to add knowledge sources to your crew, check out the documentation:
 		# https://docs.crewai.com/concepts/knowledge#what-is-knowledge
 
 		return Crew(
-			agents=self.agents, # Automatically created by the @agent decorator
-			tasks=self.tasks, # Automatically created by the @task decorator
+			agents=[self.researcher(), self.reporting_analyst(), self.twitter_redactor()],
+			tasks=[self.research_task(), self.reporting_task(), self.twitter_redaction_task()],
+			process=Process.sequential,
+			verbose=True,
+			# process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/
+		)
+  
+	@crew
+	def image_crew(self) -> Crew:
+		"""Creates the Image Generation crew"""
+		# To learn how to add knowledge sources to your crew, check out the documentation:
+		# https://docs.crewai.com/concepts/knowledge#what-is-knowledge
+
+		return Crew(
+			agents=[self.image_generator()],
+			tasks=[self.image_generation_task()],
 			process=Process.sequential,
 			verbose=True,
 			# process=Process.hierarchical, # In case you wanna use that instead https://docs.crewai.com/how-to/Hierarchical/

@@ -1,87 +1,53 @@
-```
-MATRIX ALERT
-McAfee partners with Yahoo on deepfake detector for news images,
-aiming to preserve media trust ahead of elections,
-but experts caution against relying solely on current tech,
-highlighting its limitations in detecting advanced fakes.
+Confident Ethereum will close above $1,600 on April 25 due to bullish MACD divergence despite current bearish trends. The high volatility and neutral RSI indicate oversold conditions that savvy traders can exploit, mispricing this opportunity.
 
-**Context:** This tweet discusses McAfee's collaboration with Yahoo to develop a deepfake detector for news images. The aim is to combat misinformation, especially with upcoming elections. However, experts warn that current technology has limitations and shouldn't be the only method used to detect sophisticated deepfakes.
+**Whale Watch (Solana Chain - Last 24h):**
 
-$UMA chilling at $1.449 after ripping to $1.744 and pulling back from a high-voltage leg off $1.304.  
+*   $FARTCOIN: $19M (493 whale transactions)
+*   $TRUMP: $10M (373 whale transactions)
+*   $LUCE: $2M (122 whale transactions)
+*   $TDCCP: $2M (88 whale transactions)
+*   $JUPSOL: $1M (29 whale transactions)
 
-if bulls guard $1.44-$1.46, another stab at $1.60+ is possible. slip under, and $1.38-$1.40 becomes the reload zone.  
+Whale transactions on the Solana chain are heavily skewed towards meme coins.
 
-still riding that impulse wave—watch if it fizzles or
+$GFI broke out hard — from $0.66 to $1.10 highs before settling at $0.939. that’s a monster +41% move in 24H. buyers clearly in control, and momentum’s still hangin’ overhead. reclaim $1 with volume? next leg incoming. don’t fade strength mid-run.
 
-**Context:** This tweet provides technical analysis for the cryptocurrency UMA. It mentions recent price movements ($1.304 to $1.744, now at $1.449) and identifies potential support and resistance levels. It suggests that if the price holds above $1.44-$1.46, a move towards $1.60+ is possible. A drop below that level could see a retracement to $1.38-$1.40. The tweet also advises watching for the impulse wave to either continue or fade.
+**AI Token Mechanics:**
 
-/ scanning smart money flows for $DRB on base
+*$HOLLY Launch Metrics*
 
-total dex volume: $474k
-sm buy volume: $301k | sm sell volume: $172k
-mcap $26M | price up 35% in 24h
+*   50x return since Friday launch
+*   Initial 66k valuation
+*   Currently trading at ~3m mc
 
-$drb seeing strong smart money accumulation with significant buy volume and price surge.
+*VIRGEN Points System*
 
-**Context:** This tweet analyzes the "smart money" flow into the cryptocurrency DRB on the BASE network. It highlights a total DEX volume of $474k, with smart money buying volume significantly higher than selling volume ($301k vs $172k). The market cap is $26M, and the price is up 35% in the last 24 hours, indicating strong accumulation by informed investors.
+*   Caps wallet allocation at 0.5%
+*   Requires 42,425 $virtual tokens per launch
+*   Max 566 tokens per wallet
+*   Prevents someone building a whole xrp trading loop through coinbase futures n that new broker dealer setup
 
-$BUTTHOLE at $0.01192, up 43% in 24h after ripping from $0.0081 and tapping $0.01389.
+Market’s in cruise mode — green vibes holdin’ the line but no breakout bass drop yet. volume’s light, but there’s stealthy scoopin’ goin’ on. keep it tight, watch the dips. calm before the noise.
 
-if $0.0114-$0.012 holds, next leg could send it toward $0.015+. break down, and $0.0095-$0.0101 is the reload zone.
+Shoutout $TAO shipping 100 subnets in 65 days + first subnet hitting $100M tvl @markjeffrey
 
-momentum’s hot but shaky—volume’s chunky, but watch for exhaustion.
+Top Base AI agents gainers last 7D📈
 
-**Context:** This tweet offers technical analysis for the cryptocurrency BUTTHOLE. It notes a 43% price increase in the last 24 hours, moving from $0.0081 to $0.01192, with a peak at $0.01389. It identifies $0.0114-$0.012 as a key support level; holding above this could lead to a further rise towards $0.015+. A breakdown could see a retracement to $0.0095-$0.0101. The tweet also warns about the volatile nature of the momentum, advising caution due to potential exhaustion.
+Which AI gem are you backing? 🤖💎
 
-$PENDLE at $2.66, up 4.82% in 24h, with a fresh move off $2.60 and wick to $2.707—clean grind with higher lows stacking.
+🔹 $ROCKET
+🔹 $VAIN
+🔹 $LEO
+🔹 $XAVI
+🔹 $ATA
+🔹 $CA…
 
-if $2.60-$2.64 holds, next leg could stretch to $2.75+. break below, and $2.45-$2.50 is the reload zone.
+Seeing net accumulations on-chain of $527k for $PENDLE on arbitrum in the last 24 hours. $5M volume. price is up 4% in last 24h. $pendle, future yield protocol, seeing on-chain net flow demand on my terminal.
 
-structure’s smooth, volume's there—swing-friendly.
+$GFI took off from $0.6398, punched into $0.9299, and now posted at $0.9195. fresh impulse, structure flipped, buyers rollin’ clean. OTE zone at $0.86–$0.89 for continuation toward $0.98+. lose that zone and $0.82–$0.84 gets swept. volatility’s hot — wait for the reset, not the
 
-**Context:** This tweet provides technical analysis for the cryptocurrency PENDLE. It reports a 4.82% increase in the last 24 hours, with the price at $2.66 after a move from $2.60 and a peak at $2.707. It highlights a pattern of higher lows. The $2.60-$2.64 range is identified as support, and holding above this could lead to a move towards $2.75+. A break below this level could see a retracement to $2.45-$2.50. The tweet notes the smooth price structure and sufficient volume, making it suitable for swing trading.
+Fresh tape looks strong. btc held the breakout, stables leaking, and buyers stepping up without hesitation. no fakeouts, no fear—just clean structure and intent. this ain’t hype—it’s confidence creeping back in. market wants to move.
 
-$dog token seeing massive whale accumulation. 24h volume hit $56k with +2.33% price action. btc ecosystem integration via ordinals/runes looking strong. sharks loading up
+$WHITE popped off—bottomed at $0.00045, spiked to $0.0008009, now chillin' at $0.0007282. that’s a 60% rip and still holding range highs. Note sits $0.00065–$0.00068. bulls defend that, next push toward $0.00081+ gets sparked. break below $0.00062, you wait.
 
-**Context:** This tweet discusses the DOG token. It points to significant accumulation by "whales" (large holders) and growing interest with $56k 24h volume. The price action is up 2.33%. The integration of the token within the Bitcoin ecosystem via Ordinals/Runes is highlighted as a positive factor.
-
-risk appetite climbing—alts pushing up while usdt.d fades.
-
-capital flowing back into mid and low caps, with $VIRTUAL, $SUI, and $ETH leading strength. total and total defi both green—momentum is there, but not euphoric.
-
-watch if this rotation holds or stalls at resistance.
-
-**Context:** This tweet describes the current market sentiment. It notes an increasing risk appetite, with altcoins rising as USDT dominance (USDT.D) declines. Capital is flowing into mid and low-cap cryptocurrencies, with VIRTUAL, SUI, and ETH leading the gains. Both the total cryptocurrency market and the DeFi sector are showing positive momentum, though not at euphoric levels. It advises monitoring whether this rotation continues or stalls at resistance levels.
-
-$DOT at $4.53, up 1.34% in 24h, after bouncing from $4.42 and tapping $4.58—momentum building, likely due to increased developer activity and new parachain launches.
-
-if $4.40-$4.45 holds, next push targets $5.00+. break lower, and $4.00-$4.10 is where bids could step in.
-
-**Context:** This tweet offers technical analysis for DOT (Polkadot). It notes a 1.34% increase in the last 24 hours, with the price at $4.53 after a bounce from $4.42 and a peak at $4.58. The building momentum is attributed to increased developer activity and new parachain launches. The $4.40-$4.45 range is identified as support, and holding above this could lead to a move towards $5.00+. A break below this level could see a retracement to $4.00-$4.10.
-
-my terminal is seeing big net accumulations on-chain of $2M for $ORCA on solana in the last 24 hours.                   
-
-$14M volume. price up 2% in last 24hrs
-
-@orca_so, solana dex, seeing strong on-chain net flow demand, suggesting accumulation.
-
-**Context:** This tweet reports significant on-chain accumulation of ORCA on Solana, with a net accumulation of $2M in the last 24 hours. The volume is $14M, and the price is up 2% in the last 24 hours. This suggests strong demand for ORCA on the Solana DEX.
-
-HYPEREVM GETS REAL
-
-INSTITUTIONAL PATH
-• @FireblocksHQ integrated hyperevm on mar 19, marking a clear path to institutional money
-• new staking structure drops same day with 6 tier system
-• diamond tier needs 500k $HYPE locked, only 57 wallets currently qualify
-• fee
-
-**Context:** This tweet discusses HyperEVM (HYPE). It highlights the integration of HyperEVM by Fireblocks on March 19th, which is seen as a significant step towards attracting institutional investment. A new staking structure with a 6-tier system was also introduced. The "diamond tier" requires 500k $HYPE locked, and currently, only 57 wallets qualify.
-
-$ZETA just ripped over 40%, pushing from $0.21 to a high of $0.30. volume’s surging, structure flipped clean—bulls in control for now.
-
-catalyst? mainnet beta launch went live, unlocking BTC-EVM-BNB chain bridging. narrative’s strong and eyes are on it.
-
-if it pulls back,.
-
-**Context:** This tweet analyzes the cryptocurrency ZETA. It reports a significant price increase of over 40%, from $0.21 to a high of $0.30, accompanied by surging volume. The market structure has shifted positively, indicating that bulls are currently in control. The catalyst for this surge is the launch of the mainnet beta, which enables bridging between BTC, EVM, and BNB chains. The narrative surrounding ZETA is strong, and the project is attracting attention.
-```
+$COTI broke down hard after a grind from $0.061 to $0.089. it’s now chillin’ near $0.0679 after sellers torched the top. but this isn’t just a bleed—it tagged the $0.067–$0.0682 OTE and bounced. bulls need to hold here or $0.063 becomes the reload zone. momentum’s gone for.
