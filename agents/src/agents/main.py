@@ -28,7 +28,7 @@ MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = "twitter_db"
 TWEETS_COLLECTION = "tweets"
 TWEETS_ZICO_COLLECTION = "tweets_zico"
-
+TWEETS_AVAX_COLLECTION = "tweets_avax"
 
 @contextmanager
 def get_mongo_client():
@@ -84,11 +84,11 @@ def save_tweet_to_db(tweet):
         with get_mongo_client() as client:
             db = client[DB_NAME]
             collection = db[TWEETS_ZICO_COLLECTION]
-            
+
             image_path = "image.png"
             if os.path.exists(image_path):
                 image_id = save_image_to_gridfs(image_path)
-                tweet['image_id'] = image_id
+                tweet["image_id"] = image_id
                 os.remove(image_path)
                 logger.info("Local image removed after saving to GridFS")
 
@@ -111,15 +111,15 @@ def save_image_to_gridfs(image_path: str) -> str:
         with get_mongo_client() as client:
             db = client[DB_NAME]
             fs = GridFS(db)
-            
+
             if not os.path.exists(image_path):
                 raise FileNotFoundError(f"Image not found: {image_path}")
-            
-            with open(image_path, 'rb') as f:
+
+            with open(image_path, "rb") as f:
                 file_id = fs.put(f.read(), filename=os.path.basename(image_path))
                 logger.info(f"Image saved to GridFS with id: {file_id}")
                 return str(file_id)
-                
+
     except Exception as e:
         logger.error(f"Error saving image to GridFS: {e}")
         raise
@@ -224,10 +224,10 @@ def process_daily_tweets():
     """
     try:
         logger.info("Starting daily tweet processing")
-        
+
         # Clear old images
         cleanup_old_images()
-        
+
         tweets = fetch_tweets_from_mongo()
 
         if not tweets:
@@ -258,20 +258,85 @@ def process_daily_tweets():
             "created_at_datetime": datetime.now(),
             "posted": False,
         }
-        image_agent = Agents().image_crew().kickoff(inputs={'text': tweet_parts[0]})
-        
+        image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
+
         save_tweet_to_db(generated_tweet)
-        
+
         logger.info("Generating image for the tweet")
-        
+
         logger.info(f"Image generation result: {image_agent}")
-        
+
         logger.info("Daily tweet processing completed successfully")
-        
+
         return tweet_text, image_agent
-        
+
     except Exception as e:
         logger.error(f"Error during daily tweet processing: {e}")
+        raise
+
+
+def process_avax_daily_tweets():
+    """
+    Main function to be executed daily for AVAX research and tweet generation
+    """
+    try:
+        logger.info("Starting daily AVAX tweet processing")
+
+        cleanup_old_images()
+
+        result = Agents().avax_crew().kickoff()
+
+        if hasattr(result, "raw"):
+            tweet_text = result.raw
+        elif isinstance(result, list) and len(result) > 0:
+            tweet_text = result[-1].raw
+        else:
+            tweet_text = str(result)
+
+        tweet_text = tweet_text.strip()
+        tweet_parts = split_tweet_in_parts(tweet_text)
+
+        logger.info(f"Generated AVAX tweet (in {len(tweet_parts)} parts):")
+        for part in tweet_parts:
+            logger.info(f"Part: {part}")
+
+        generated_tweet = {
+            "original_text": tweet_text,
+            "parts": tweet_parts,
+            "created_at_datetime": datetime.now(),
+            "posted": False,
+            "type": "avax"  # Identificador para diferenciar dos outros tweets
+        }
+
+        image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
+        
+        try:
+            with get_mongo_client() as client:
+                db = client[DB_NAME]
+                collection = db[TWEETS_AVAX_COLLECTION]
+
+                image_path = "image.png"
+                if os.path.exists(image_path):
+                    image_id = save_image_to_gridfs(image_path)
+                    generated_tweet["image_id"] = image_id
+                    os.remove(image_path)
+                    logger.info("Local image removed after saving to GridFS")
+
+                result = collection.insert_one(generated_tweet)
+                logger.info(f"AVAX tweet saved to MongoDB with id: {result.inserted_id}")
+
+        except Exception as e:
+            logger.error(f"Error saving AVAX tweet to MongoDB: {e}")
+            raise
+
+        logger.info("Generating image for the AVAX tweet")
+        logger.info(f"Image generation result: {image_agent}")
+        logger.info("Daily AVAX tweet processing completed successfully")
+
+        return tweet_text, image_agent
+
+    except Exception as e:
+        logger.error(f"Error during AVAX tweet processing: {e}")
         raise
 
 
@@ -283,21 +348,18 @@ def cleanup_old_images():
         with get_mongo_client() as client:
             db = client[DB_NAME]
             fs = GridFS(db)
-            
-            # Data 3 days ago
+
             three_days_ago = datetime.now() - timedelta(days=3)
-            
-            # Find all files older than 3 days
             old_files = fs.find({"uploadDate": {"$lt": three_days_ago}})
-            
+
             count = 0
             for file in old_files:
                 fs.delete(file._id)
                 count += 1
-            
+
             if count > 0:
                 logger.info(f"Removed {count} images older than 3 days from GridFS")
-            
+
     except Exception as e:
         logger.error(f"Error cleaning up old images: {e}")
         raise
@@ -329,7 +391,8 @@ def run():
         lambda: should_run_task(22) and process_daily_tweets()
     )
 
-    process_daily_tweets()
+    # process_daily_tweets()
+    process_avax_daily_tweets()
 
     logger.info("Scheduler iniciado. Aguardando execução...")
 
