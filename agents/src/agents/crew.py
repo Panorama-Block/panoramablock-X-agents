@@ -74,7 +74,14 @@ class Agents():
 	def reporting_task(self) -> Task:
 		return Task(
 			config=self.tasks_config['reporting_task'],
-			output_file='report.md'
+			output_file='zico_report.md'
+		)
+  
+	@task
+	def avax_reporting_task(self) -> Task:
+		return Task(
+			config=self.tasks_config['reporting_task'],
+			output_file='avax_report.md'
 		)
   
 	@task
@@ -87,8 +94,7 @@ class Agents():
 	@task
 	def image_generation_task(self) -> Task:
 		return Task(
-			config=self.tasks_config['image_generation_task'],
-			output_file='images.md'
+			config=self.tasks_config['image_generation_task']
 		)
 
 	@crew

@@ -4,6 +4,7 @@ import sys
 import warnings
 import logging
 import time
+from pathlib import Path
 from datetime import datetime, timedelta
 from contextlib import contextmanager
 from gridfs import GridFS
@@ -33,6 +34,7 @@ TWEETS_COLLECTION = "tweets"
 TWEETS_ZICO_COLLECTION = "tweets_zico"
 TWEETS_AVAX_COLLECTION = "tweets_avax"
 
+
 @contextmanager
 def get_mongo_client():
     """
@@ -55,19 +57,22 @@ def get_mongo_client():
             client.close()
             logger.debug("MongoDB connection closed")
 
+
 class Neo4jVectorDB:
     def __init__(self):
         self.uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
         self.user = os.getenv("NEO4J_USER", "neo4j")
         self.password = os.getenv("NEO4J_PASSWORD", "password")
         self._driver = None
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
-        
+        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+
     def connect(self):
         if not self._driver:
-            self._driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+            self._driver = GraphDatabase.driver(
+                self.uri, auth=(self.user, self.password)
+            )
         return self._driver
-        
+
     def close(self):
         if self._driver:
             self._driver.close()
@@ -77,7 +82,8 @@ class Neo4jVectorDB:
         """Ensure required indexes exist in Neo4j"""
         with self.connect() as driver:
             with driver.session() as session:
-                session.run("""
+                session.run(
+                    """
                 CREATE VECTOR INDEX report_vector IF NOT EXISTS
                 FOR (r:Report)
                 ON r.vector
@@ -87,21 +93,24 @@ class Neo4jVectorDB:
                         `vector.similarity_function`: 'cosine'
                     }
                 }
-                """)
-                
-                session.run("""
+                """
+                )
+
+                session.run(
+                    """
                 CREATE INDEX report_network IF NOT EXISTS
                 FOR (r:Report)
                 ON r.network
-                """)
-        
+                """
+                )
+
     def save_report_vector(self, report_text, metadata=None):
         if not report_text:
             raise ValueError("Report text cannot be empty")
-            
+
         vector = self.text_to_vector(report_text)
         metadata = metadata or {}
-        
+
         with self.connect() as driver:
             with driver.session() as session:
                 labels = ["Report"]
@@ -110,34 +119,36 @@ class Neo4jVectorDB:
                     "text": report_text,
                     "timestamp": "datetime()",
                     "metadata": metadata,
-                    "created_at": datetime.now().isoformat()
+                    "created_at": datetime.now().isoformat(),
                 }
-                
+
                 if "network" in metadata:
                     network = metadata["network"].strip().upper()
                     if network:
                         labels.append(network)
                         properties["network"] = metadata["network"].lower()
                         properties["agent_id"] = metadata.get("agent_id", "unknown")
-                        properties["report_type"] = metadata.get("report_type", "general")
-                
+                        properties["report_type"] = metadata.get(
+                            "report_type", "general"
+                        )
+
                 labels_str = ":".join(labels)
                 properties_str = ", ".join(f"{k}: ${k}" for k in properties.keys())
-                
+
                 cypher_query = f"""
                 CREATE (r:{labels_str} {{
                     {properties_str}
                 }})
                 RETURN r.created_at
                 """
-                
+
                 result = session.run(cypher_query, **properties)
                 return result.single()[0]
 
     def find_similar_reports(self, text, network=None, limit=5, min_score=0.5):
         """
         Find similar reports using vector similarity search
-        
+
         Args:
             text (str): Text to find similar reports for
             network (str, optional): Filter by specific network
@@ -146,9 +157,9 @@ class Neo4jVectorDB:
         """
         if not text:
             raise ValueError("Search text cannot be empty")
-            
+
         vector = self.text_to_vector(text)
-        
+
         with self.connect() as driver:
             with driver.session() as session:
                 cypher_query = """
@@ -165,12 +176,14 @@ class Neo4jVectorDB:
                        score
                 ORDER BY score DESC
                 """
-                
-                results = session.run(cypher_query,
-                                   vector=vector.tolist(),
-                                   network=network.lower() if network else None,
-                                   min_score=min_score,
-                                   limit=limit)
+
+                results = session.run(
+                    cypher_query,
+                    vector=vector.tolist(),
+                    network=network.lower() if network else None,
+                    min_score=min_score,
+                    limit=limit,
+                )
                 return list(results)
 
     def __enter__(self):
@@ -179,6 +192,20 @@ class Neo4jVectorDB:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+
+def save_report_to_vector_db(report_text, metadata=None):
+    """
+    Save report to vector database
+    """
+    try:
+        vector_db = Neo4jVectorDB()
+        vector_db.ensure_indexes()
+        created_at = vector_db.save_report_vector(report_text, metadata)
+        logger.info(f"Report saved successfully to vector database at {created_at}")
+    except Exception as e:
+        logger.error(f"Error saving report to vector database: {e}")
+
 
 def fetch_tweets_from_mongo():
     """
@@ -387,6 +414,20 @@ def process_daily_tweets():
         }
         image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
 
+        report_path = Path(__file__).resolve().parents[3] / "zico_report.md"
+        if not report_path.exists():
+            raise FileNotFoundError(f"zico_report.md not found at {report_path}")
+
+        with open(report_path, "r", encoding="utf-8") as f:
+            report_text = f.read()
+
+        save_report_to_vector_db(
+            report_text,
+            metadata={
+                "topic": "daily_summary",
+                "author": "zico_agent",
+            },
+        )
         save_tweet_to_db(generated_tweet)
 
         logger.info("Generating image for the tweet")
@@ -422,13 +463,20 @@ def process_avax_daily_tweets():
 
         tweet_text = tweet_text.strip()
 
-        report_path = "report.md"
-        if os.path.exists(report_path):
-            with open(report_path, 'r', encoding='utf-8') as f:
-                report_content = f.read()
-                current_date = datetime.now().strftime("%Y-%m-%d")
-                save_report_to_neo4j(report_content, current_date)
-                logger.info("Report saved to Neo4j successfully")
+        report_path = Path(__file__).resolve().parents[3] / "avax_report.md"
+        if not report_path.exists():
+            raise FileNotFoundError(f"avax_report.md not found at {report_path}")
+
+        with open(report_path, "r", encoding="utf-8") as f:
+            report_text = f.read()
+
+        save_report_to_vector_db(
+            report_text,
+            metadata={
+                "topic": "daily_summary",
+                "author": "avax_agent",
+            },
+        )
 
         tweet_parts = split_tweet_in_parts(tweet_text)
 
@@ -441,11 +489,11 @@ def process_avax_daily_tweets():
             "parts": tweet_parts,
             "created_at_datetime": datetime.now(),
             "posted": False,
-            "type": "avax"
+            "type": "avax",
         }
 
         image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
-        
+
         try:
             with get_mongo_client() as client:
                 db = client[DB_NAME]
@@ -459,7 +507,9 @@ def process_avax_daily_tweets():
                     logger.info("Local image removed after saving to GridFS")
 
                 result = collection.insert_one(generated_tweet)
-                logger.info(f"AVAX tweet saved to MongoDB with id: {result.inserted_id}")
+                logger.info(
+                    f"AVAX tweet saved to MongoDB with id: {result.inserted_id}"
+                )
 
         except Exception as e:
             logger.error(f"Error saving AVAX tweet to MongoDB: {e}")
@@ -467,7 +517,7 @@ def process_avax_daily_tweets():
 
         with open("report.md", "r") as f:
             report_content = f.read()
-            
+
         # Salvar o report no banco vetorial
         save_report_to_vector_db(
             report_content,
@@ -475,8 +525,8 @@ def process_avax_daily_tweets():
                 "date": datetime.now().isoformat(),
                 "network": "avax",
                 "agent_id": "avax_daily_agent",
-                "report_type": "daily_research"
-            }
+                "report_type": "daily_research",
+            },
         )
 
         logger.info("Generating image for the AVAX tweet")
@@ -592,171 +642,7 @@ def test():
 
     except Exception as e:
         raise Exception(f"An error occurred while testing the crew: {e}")
-
-
-class Neo4jVectorDB:
-    def __init__(self):
-        self.uri = os.getenv("NEO4J_URI", "bolt://localhost:7687")
-        self.user = os.getenv("NEO4J_USER", "neo4j")
-        self.password = os.getenv("NEO4J_PASSWORD", "password")
-        self._driver = None
-        self.model = SentenceTransformer('all-MiniLM-L6-v2')
-        
-    def connect(self):
-        if not self._driver:
-            self._driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
-        return self._driver
-        
-    def close(self):
-        if self._driver:
-            self._driver.close()
-            self._driver = None
-
-    def ensure_indexes(self):
-        """Ensure required indexes exist in Neo4j"""
-        with self.connect() as driver:
-            with driver.session() as session:
-                # Vector index for similarity search
-                session.run("""
-                CREATE VECTOR INDEX report_vector IF NOT EXISTS
-                FOR (r:Report)
-                ON r.vector
-                OPTIONS {
-                    indexConfig: {
-                        `vector.dimensions`: 384,
-                        `vector.similarity_function`: 'cosine'
-                    }
-                }
-                """)
-                
-                # Index for network filtering
-                session.run("""
-                CREATE INDEX report_network IF NOT EXISTS
-                FOR (r:Report)
-                ON r.network
-                """)
-        
-    def save_report_vector(self, report_text, metadata=None):
-        if not report_text:
-            raise ValueError("Report text cannot be empty")
-            
-        vector = self.text_to_vector(report_text)
-        metadata = metadata or {}
-        
-        with self.connect() as driver:
-            with driver.session() as session:
-                # Base labels and properties that all reports will have
-                labels = ["Report"]
-                properties = {
-                    "vector": vector.tolist(),
-                    "text": report_text,
-                    "timestamp": "datetime()",
-                    "metadata": metadata,
-                    "created_at": datetime.now().isoformat()  # Add explicit creation timestamp
-                }
-                
-                # Add network-specific label and properties if provided
-                if "network" in metadata:
-                    network = metadata["network"].strip().upper()
-                    if network:  # Only add if network is not empty
-                        labels.append(network)
-                        properties["network"] = metadata["network"].lower()
-                        properties["agent_id"] = metadata.get("agent_id", "unknown")
-                        properties["report_type"] = metadata.get("report_type", "general")
-                
-                # Construct the Cypher query dynamically
-                labels_str = ":".join(labels)
-                properties_str = ", ".join(f"{k}: ${k}" for k in properties.keys())
-                
-                cypher_query = f"""
-                CREATE (r:{labels_str} {{
-                    {properties_str}
-                }})
-                RETURN r.created_at
-                """
-                
-                result = session.run(cypher_query, **properties)
-                return result.single()[0]  # Return creation timestamp
-
-    def find_similar_reports(self, text, network=None, limit=5, min_score=0.5):
-        """
-        Find similar reports using vector similarity search
-        
-        Args:
-            text (str): Text to find similar reports for
-            network (str, optional): Filter by specific network
-            limit (int): Maximum number of results
-            min_score (float): Minimum similarity score (0-1)
-        """
-        if not text:
-            raise ValueError("Search text cannot be empty")
-            
-        vector = self.text_to_vector(text)
-        
-        with self.connect() as driver:
-            with driver.session() as session:
-                cypher_query = """
-                CALL db.index.vector.queryNodes('report_vector', $limit, $vector)
-                YIELD node, score
-                WHERE score >= $min_score
-                  AND ($network IS NULL OR 
-                      ($network IS NOT NULL AND node.network = $network))
-                RETURN node.text as text,
-                       node.network as network,
-                       node.created_at as created_at,
-                       node.report_type as report_type,
-                       node.metadata as metadata,
-                       score
-                ORDER BY score DESC
-                """
-                
-                results = session.run(cypher_query,
-                                   vector=vector.tolist(),
-                                   network=network.lower() if network else None,
-                                   min_score=min_score,
-                                   limit=limit)
-                return list(results)
-
-    def __enter__(self):
-        self.connect()
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-
-
-def save_report_to_vector_db(report_text, metadata=None):
-    """
-    Save report to vector database
-    """
-    try:
-        vector_db = Neo4jVectorDB()
-        vector_db.ensure_indexes()
-        created_at = vector_db.save_report_vector(report_text, metadata)
-        logger.info(f"Report saved successfully to vector database at {created_at}")
-    except Exception as e:
-        logger.error(f"Error saving report to vector database: {e}")
-
-
-def save_report_to_neo4j(report_content, current_date):
-    """
-    Save report to Neo4j
-    """
-    try:
-        driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "password"))
-        with driver.session() as session:
-            cypher_query = """
-            CREATE (r:Report {
-                text: $text,
-                date: $date,
-                timestamp: datetime()
-            })
-            """
-            session.run(cypher_query, text=report_content, date=current_date)
-            logger.info("Report saved successfully to Neo4j")
-    except Exception as e:
-        logger.error(f"Error saving report to Neo4j: {e}")
-
+    
 
 if __name__ == "__main__":
     run()
