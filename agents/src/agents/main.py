@@ -541,21 +541,21 @@ def run():
     Configure and run the scheduler
     """
 
-    # schedule.every().hour.at(":00").do(
-    #     lambda: should_run_task(6) and process_daily_tweets()
-    # )
-    # schedule.every().hour.at(":00").do(
-    #     lambda: should_run_task(12) and process_daily_tweets()
-    # )
-    # schedule.every().hour.at(":00").do(
-    #     lambda: should_run_task(18) and process_daily_tweets()
-    # )
-    # schedule.every().hour.at(":00").do(
-    #     lambda: should_run_task(22) and process_daily_tweets()
-    # )
+    schedule.every().hour.at(":00").do(
+        lambda: should_run_task(6) and process_daily_tweets()
+    )
+    schedule.every().hour.at(":00").do(
+        lambda: should_run_task(12) and process_daily_tweets()
+    )
+    schedule.every().hour.at(":00").do(
+        lambda: should_run_task(18) and process_daily_tweets()
+    )
+    schedule.every().hour.at(":00").do(
+        lambda: should_run_task(22) and process_daily_tweets()
+    )
 
     # process_daily_tweets()
-    process_avax_daily_tweets()
+    # process_avax_daily_tweets()
 
     logger.info("Scheduler iniciado. Aguardando execução...")
 
