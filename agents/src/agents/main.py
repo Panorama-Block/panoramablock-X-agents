@@ -541,6 +541,7 @@ def run():
     Configure and run the scheduler
     """
 
+    # Zico
     schedule.every().hour.at(":00").do(
         lambda: should_run_task(6) and process_daily_tweets()
     )
@@ -552,6 +553,20 @@ def run():
     )
     schedule.every().hour.at(":00").do(
         lambda: should_run_task(22) and process_daily_tweets()
+    )
+    
+    # Avax
+    schedule.every().hour.at(":00").do(
+        lambda: should_run_task(7) and process_avax_daily_tweets()
+    )
+    schedule.every().hour.at(":00").do(
+        lambda: should_run_task(13) and process_avax_daily_tweets()
+    )
+    schedule.every().hour.at(":00").do(
+        lambda: should_run_task(19) and process_avax_daily_tweets()
+    )
+    schedule.every().hour.at(":00").do(
+        lambda: should_run_task(23) and process_avax_daily_tweets()
     )
 
     # process_daily_tweets()
