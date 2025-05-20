@@ -104,46 +104,35 @@ class Neo4jVectorDB:
                 """
                 )
 
+    def text_to_vector(self, text: str):
+        """Convert text to vector using SentenceTransformer"""
+        return self.model.encode(text)
+
     def save_report_vector(self, report_text, metadata=None):
-        if not report_text:
-            raise ValueError("Report text cannot be empty")
-
+        """Save report vector to Neo4j"""
         vector = self.text_to_vector(report_text)
-        metadata = metadata or {}
-
+        
         with self.connect() as driver:
             with driver.session() as session:
-                labels = ["Report"]
-                properties = {
-                    "vector": vector.tolist(),
-                    "text": report_text,
-                    "timestamp": "datetime()",
-                    "metadata": metadata,
-                    "created_at": datetime.now().isoformat(),
-                }
-
-                if "network" in metadata:
-                    network = metadata["network"].strip().upper()
-                    if network:
-                        labels.append(network)
-                        properties["network"] = metadata["network"].lower()
-                        properties["agent_id"] = metadata.get("agent_id", "unknown")
-                        properties["report_type"] = metadata.get(
-                            "report_type", "general"
-                        )
-
-                labels_str = ":".join(labels)
-                properties_str = ", ".join(f"{k}: ${k}" for k in properties.keys())
-
-                cypher_query = f"""
-                CREATE (r:{labels_str} {{
-                    {properties_str}
-                }})
-                RETURN r.created_at
-                """
-
-                result = session.run(cypher_query, **properties)
-                return result.single()[0]
+                result = session.run(
+                    """
+                    CREATE (r:Report {
+                        text: $text,
+                        vector: $vector,
+                        network: $network,
+                        agent_id: $agent_id,
+                        report_type: $report_type,
+                        created_at: datetime()
+                    })
+                    RETURN r.created_at as created_at
+                    """,
+                    text=report_text,
+                    vector=vector.tolist(),
+                    network=metadata.get("network", "unknown") if metadata else "unknown",
+                    agent_id=metadata.get("agent_id", "unknown") if metadata else "unknown",
+                    report_type=metadata.get("report_type", "unknown") if metadata else "unknown"
+                )
+                return result.single()["created_at"]
 
     def find_similar_reports(self, text, network=None, limit=5, min_score=0.5):
         """
@@ -230,7 +219,7 @@ def fetch_tweets_from_mongo():
         raise
 
 
-def save_tweet_to_db(tweet):
+def save_tweet_to_db(tweet, type="zico"):
     """
     Saves a generated tweet to MongoDB with image reference if available
     """
@@ -238,6 +227,9 @@ def save_tweet_to_db(tweet):
         with get_mongo_client() as client:
             db = client[DB_NAME]
             collection = db[TWEETS_ZICO_COLLECTION]
+
+            if type == "avax":
+                collection = db[TWEETS_AVAX_COLLECTION]
 
             image_path = "image.png"
             if os.path.exists(image_path):
@@ -279,7 +271,7 @@ def save_image_to_gridfs(image_path: str) -> str:
         raise
 
 
-def split_tweet_in_parts(tweet: str) -> list[str]:
+def split_tweet_in_parts(tweet: str, header: str = "Zico100x AI here 🤩 this is what leading AI agents said today on X:") -> list[str]:
     """
     Split a tweet into parts based on 'Part X' markers.
     Supports two formats:
@@ -312,8 +304,6 @@ def split_tweet_in_parts(tweet: str) -> list[str]:
 
     result = []
     total_parts = len(sections)
-
-    header = "Zico100x AI here 🤩 this is what leading AI agents said today on X:"
 
     for part_idx in range(total_parts):
         part_number = part_idx + 1
@@ -412,27 +402,30 @@ def process_daily_tweets():
             "created_at_datetime": datetime.now(),
             "posted": False,
         }
-        image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
+        
+        logger.info("Generating image for the tweet")
+        image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0], "type": "zico"})
 
-        report_path = Path(__file__).resolve().parents[3] / "zico_report.md"
+        save_tweet_to_db(generated_tweet, type="zico")
+
+        logger.info(f"Image generation result: {image_agent}")
+        
+        report_path = Path(__file__).resolve().parents[2] / "zico_report.md"
         if not report_path.exists():
             raise FileNotFoundError(f"zico_report.md not found at {report_path}")
 
         with open(report_path, "r", encoding="utf-8") as f:
             report_text = f.read()
-
+            
         save_report_to_vector_db(
             report_text,
             metadata={
-                "topic": "daily_summary",
-                "author": "zico_agent",
+                "date": datetime.now().isoformat(),
+                "network": "zico",
+                "agent_id": "zico_daily_agent",
+                "report_type": "daily_research",
             },
         )
-        save_tweet_to_db(generated_tweet)
-
-        logger.info("Generating image for the tweet")
-
-        logger.info(f"Image generation result: {image_agent}")
 
         logger.info("Daily tweet processing completed successfully")
 
@@ -462,23 +455,8 @@ def process_avax_daily_tweets():
             tweet_text = str(result)
 
         tweet_text = tweet_text.strip()
-
-        report_path = Path(__file__).resolve().parents[3] / "avax_report.md"
-        if not report_path.exists():
-            raise FileNotFoundError(f"avax_report.md not found at {report_path}")
-
-        with open(report_path, "r", encoding="utf-8") as f:
-            report_text = f.read()
-
-        save_report_to_vector_db(
-            report_text,
-            metadata={
-                "topic": "daily_summary",
-                "author": "avax_agent",
-            },
-        )
-
-        tweet_parts = split_tweet_in_parts(tweet_text)
+        header = "ZicoAvax AI here 🤩 this is Avalanche (AVAX) news on X:"
+        tweet_parts = split_tweet_in_parts(tweet_text, header)
 
         logger.info(f"Generated AVAX tweet (in {len(tweet_parts)} parts):")
         for part in tweet_parts:
@@ -491,36 +469,23 @@ def process_avax_daily_tweets():
             "posted": False,
             "type": "avax",
         }
-
+        
+        logger.info("Generating image for the AVAX tweet")
         image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
 
-        try:
-            with get_mongo_client() as client:
-                db = client[DB_NAME]
-                collection = db[TWEETS_AVAX_COLLECTION]
+        logger.info(f"Image generation result: {image_agent}")
 
-                image_path = "image.png"
-                if os.path.exists(image_path):
-                    image_id = save_image_to_gridfs(image_path)
-                    generated_tweet["image_id"] = image_id
-                    os.remove(image_path)
-                    logger.info("Local image removed after saving to GridFS")
+        save_tweet_to_db(generated_tweet, type="avax")
+        
+        report_path = Path(__file__).resolve().parents[2] / "avax_report.md"
+        if not report_path.exists():
+            raise FileNotFoundError(f"avax_report.md not found at {report_path}")
 
-                result = collection.insert_one(generated_tweet)
-                logger.info(
-                    f"AVAX tweet saved to MongoDB with id: {result.inserted_id}"
-                )
-
-        except Exception as e:
-            logger.error(f"Error saving AVAX tweet to MongoDB: {e}")
-            raise
-
-        with open("report.md", "r") as f:
-            report_content = f.read()
-
-        # Salvar o report no banco vetorial
+        with open(report_path, "r", encoding="utf-8") as f:
+            report_text = f.read()
+            
         save_report_to_vector_db(
-            report_content,
+            report_text,
             metadata={
                 "date": datetime.now().isoformat(),
                 "network": "avax",
@@ -529,8 +494,6 @@ def process_avax_daily_tweets():
             },
         )
 
-        logger.info("Generating image for the AVAX tweet")
-        logger.info(f"Image generation result: {image_agent}")
         logger.info("Daily AVAX tweet processing completed successfully")
 
         return tweet_text, image_agent
@@ -578,18 +541,18 @@ def run():
     Configure and run the scheduler
     """
 
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(6) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(12) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(18) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(22) and process_daily_tweets()
-    )
+    # schedule.every().hour.at(":00").do(
+    #     lambda: should_run_task(6) and process_daily_tweets()
+    # )
+    # schedule.every().hour.at(":00").do(
+    #     lambda: should_run_task(12) and process_daily_tweets()
+    # )
+    # schedule.every().hour.at(":00").do(
+    #     lambda: should_run_task(18) and process_daily_tweets()
+    # )
+    # schedule.every().hour.at(":00").do(
+    #     lambda: should_run_task(22) and process_daily_tweets()
+    # )
 
     # process_daily_tweets()
     process_avax_daily_tweets()

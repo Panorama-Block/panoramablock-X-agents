@@ -67,31 +67,43 @@ class GrokSearchTool(BaseTool):
         Returns:
             str: The search results
         """
-        try:
-            completion = self.client.chat.completions.create(
-                model="grok-3-beta",
-                messages=[
-                    {
-                        "role": "system", 
-                        "content": """You are a research assistant focused on Avalanche (AVAX). 
-                        Search and analyze only the specific information requested.
-                        Provide factual, data-driven insights based on real-time information.
-                        Keep responses focused and relevant to the query."""
-                    },
-                    {
-                        "role": "user", 
-                        "content": f"Search and provide specific information about: {query}\nFocus only on recent and verified information about this topic in the context of Avalanche (AVAX)."
-                    }
-                ],
-                max_tokens=500,
-                temperature=0.7
-            )
-            
-            return completion.choices[0].message.content
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                completion = self.client.chat.completions.create(
+                    model="grok-3-beta",
+                    messages=[
+                        {
+                            "role": "system", 
+                            "content": """You are a research assistant focused on Avalanche (AVAX). 
+                            Search and analyze only the specific information requested.
+                            Provide factual, data-driven insights based on real-time information.
+                            Keep responses focused and relevant to the query.
+                            If you cannot find relevant information, explain why."""
+                        },
+                        {
+                            "role": "user", 
+                            "content": f"Search and provide specific information about: {query}\nFocus only on recent and verified information about this topic in the context of Avalanche (AVAX)."
+                        }
+                    ],
+                    max_tokens=500,
+                    temperature=0.7
+                )
+                
+                content = completion.choices[0].message.content
+                if not content or content.strip() == "":
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Empty response received on attempt {attempt + 1}, retrying...")
+                        continue
+                    return "No relevant information found. Please try a different query or check back later."
+                
+                return content
 
-        except Exception as e:
-            logger.error(f"Error executing Grok search: {e}")
-            return f"Error executing Grok search: {str(e)}"
+            except Exception as e:
+                logger.error(f"Error executing Grok search (attempt {attempt + 1}): {e}")
+                if attempt < max_retries - 1:
+                    continue
+                return f"Error executing Grok search after {max_retries} attempts: {str(e)}"
 
     async def _arun(self, query: str) -> str:
         """Async implementation of the tool"""

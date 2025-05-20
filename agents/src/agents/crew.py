@@ -52,6 +52,7 @@ class Agents():
 		return Agent(
 			config=self.agents_config['image_generator'],
 			tools=[GeminiImageDirectTool()],
+			verbose=True
 		)
    
 
@@ -132,14 +133,12 @@ class Agents():
 			agents=[
 				self.avax_researcher(), 
 				self.reporting_analyst(), 
-				self.twitter_redactor(), 
-				self.image_generator()
+				self.twitter_redactor()
 			],
 			tasks=[
 				self.avax_research_task(), 
-				self.reporting_task(), 
-				self.twitter_redaction_task(), 
-				self.image_generation_task()
+				self.avax_reporting_task(), 
+				self.twitter_redaction_task(),
 			],
 			process=Process.sequential
 		)

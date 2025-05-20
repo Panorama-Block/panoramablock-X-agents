@@ -64,23 +64,31 @@ twitter_redaction_task:
 
 avax_research_task:
   description: >
-    Using the Grok search tool, research and analyze the latest information about Avalanche (AVAX).
+    Research and analyze the latest developments about Avalanche (AVAX).
     Focus on gathering information about:
+    - Price and market cap
     - Recent network developments and updates
     - Performance metrics and network statistics
     - DeFi projects and ecosystem growth
     - Market trends and analysis
     - New partnerships and integrations
     - Developer activity and community updates
+
+    After each search:
+    1. Think about what information you received
+    2. Process and analyze the data
+    3. Format your response as a clear summary
+    4. Never return raw search results
+
+    Your final response should be a concise, well-structured analysis.
   expected_output: >
-    A comprehensive analysis of Avalanche's current state and developments.
-    The analysis should include:
-    - Key technical updates and improvements
-    - Important ecosystem metrics and statistics
-    - Significant partnerships or integrations
-    - Market trends and potential impacts
-    - Notable DeFi projects and their performance
-    Don't add bets and sports related content.
+    A comprehensive analysis of Avalanche's current state, focusing on:
+    - Current price, market cap, and 24h trading volume
+    - Recent price movements and market trends
+    - Network performance metrics (TPS, active addresses, etc)
+    - Latest news and announcements from the Avalanche team
+    - Recent partnerships or integrations that impact the network
+    - Major updates or changes to the network
     Focus on factual information and avoid speculation.
   agent: avax_researcher
 
@@ -93,17 +101,3 @@ image_generation_task:
     The tool output
     A link of the generated image
   agent: image_generator
-# image_generation_task:
-#   description: >
-#     Generate images for each part of the tweet thread using Gemini Image Generator.
-#     Each image should visually represent the main theme or content of its respective tweet part.
-#     The images should maintain consistency in style and theme across the thread.
-#   expected_output: >
-#     A list of generated images that match each tweet part's content.
-#     Each image should be:
-#     - Relevant to the tweet part's content
-#     - Visually appealing and professional
-#     - Consistent with crypto/blockchain theme when applicable
-#     - Safe for work and appropriate for social media
-#     - Generated in a style that matches the tweet's tone
-#   agent: image_generator
