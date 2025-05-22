@@ -5,11 +5,17 @@ import os
 from PIL import Image
 from io import BytesIO
 from dotenv import load_dotenv
+import openai
+import logging
+from typing import Any
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
+grok_api_key = os.getenv("GROK_API_KEY")
 
 client = genai.Client(api_key=api_key)
+
+logger = logging.getLogger(__name__)
 
 class GeminiImageDirectTool(BaseTool):
     name: str = "generate_image_direct"
@@ -40,3 +46,65 @@ class GeminiImageDirectTool(BaseTool):
             return 'image.png'
         except Exception as e:
             return f"Erro ao gerar a imagem: {e}"
+
+class GrokSearchTool(BaseTool):
+    name: str = "grok_search"
+    description: str = "Search for content using Grok API"
+    client: Any = None  
+
+    def __init__(self):
+        super().__init__()
+        self.client = openai.OpenAI(
+            api_key=os.getenv("GROK_API_KEY"),
+            base_url="https://api.x.ai/v1"
+        )
+
+    def _run(self, query: str) -> str:
+        """
+        Execute a search using Grok API
+        Args:
+            query (str): The search query
+        Returns:
+            str: The search results
+        """
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                completion = self.client.chat.completions.create(
+                    model="grok-3-beta",
+                    messages=[
+                        {
+                            "role": "system", 
+                            "content": """You are a research assistant focused on Avalanche (AVAX). 
+                            Search and analyze only the specific information requested.
+                            Provide factual, data-driven insights based on real-time information.
+                            Keep responses focused and relevant to the query.
+                            If you cannot find relevant information, explain why."""
+                        },
+                        {
+                            "role": "user", 
+                            "content": f"Search and provide specific information about: {query}\nFocus only on recent and verified information about this topic in the context of Avalanche (AVAX)."
+                        }
+                    ],
+                    max_tokens=500,
+                    temperature=0.7
+                )
+                
+                content = completion.choices[0].message.content
+                if not content or content.strip() == "":
+                    if attempt < max_retries - 1:
+                        logger.warning(f"Empty response received on attempt {attempt + 1}, retrying...")
+                        continue
+                    return "No relevant information found. Please try a different query or check back later."
+                
+                return content
+
+            except Exception as e:
+                logger.error(f"Error executing Grok search (attempt {attempt + 1}): {e}")
+                if attempt < max_retries - 1:
+                    continue
+                return f"Error executing Grok search after {max_retries} attempts: {str(e)}"
+
+    async def _arun(self, query: str) -> str:
+        """Async implementation of the tool"""
+        return self._run(query)
