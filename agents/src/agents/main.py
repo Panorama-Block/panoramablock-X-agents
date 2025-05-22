@@ -410,22 +410,22 @@ def process_daily_tweets():
 
         logger.info(f"Image generation result: {image_agent}")
         
-        report_path = Path(__file__).resolve().parents[2] / "zico_report.md"
-        if not report_path.exists():
-            raise FileNotFoundError(f"zico_report.md not found at {report_path}")
+        # report_path = Path(__file__).resolve().parents[2] / "zico_report.md"
+        # if not report_path.exists():
+        #     raise FileNotFoundError(f"zico_report.md not found at {report_path}")
 
-        with open(report_path, "r", encoding="utf-8") as f:
-            report_text = f.read()
+        # with open(report_path, "r", encoding="utf-8") as f:
+        #     report_text = f.read()
             
-        save_report_to_vector_db(
-            report_text,
-            metadata={
-                "date": datetime.now().isoformat(),
-                "network": "zico",
-                "agent_id": "zico_daily_agent",
-                "report_type": "daily_research",
-            },
-        )
+        # save_report_to_vector_db(
+        #     report_text,
+        #     metadata={
+        #         "date": datetime.now().isoformat(),
+        #         "network": "zico",
+        #         "agent_id": "zico_daily_agent",
+        #         "report_type": "daily_research",
+        #     },
+        # )
 
         logger.info("Daily tweet processing completed successfully")
 
@@ -477,22 +477,22 @@ def process_avax_daily_tweets():
 
         save_tweet_to_db(generated_tweet, type="avax")
         
-        report_path = Path(__file__).resolve().parents[2] / "avax_report.md"
-        if not report_path.exists():
-            raise FileNotFoundError(f"avax_report.md not found at {report_path}")
+        # report_path = Path(__file__).resolve().parents[2] / "avax_report.md"
+        # if not report_path.exists():
+        #     raise FileNotFoundError(f"avax_report.md not found at {report_path}")
 
-        with open(report_path, "r", encoding="utf-8") as f:
-            report_text = f.read()
+        # with open(report_path, "r", encoding="utf-8") as f:
+        #     report_text = f.read()
             
-        save_report_to_vector_db(
-            report_text,
-            metadata={
-                "date": datetime.now().isoformat(),
-                "network": "avax",
-                "agent_id": "avax_daily_agent",
-                "report_type": "daily_research",
-            },
-        )
+        # save_report_to_vector_db(
+        #     report_text,
+        #     metadata={
+        #         "date": datetime.now().isoformat(),
+        #         "network": "avax",
+        #         "agent_id": "avax_daily_agent",
+        #         "report_type": "daily_research",
+        #     },
+        # )
 
         logger.info("Daily AVAX tweet processing completed successfully")
 
