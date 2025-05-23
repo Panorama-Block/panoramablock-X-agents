@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 import openai
 import logging
 from typing import Any
+import time
+from datetime import datetime
 
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
@@ -51,12 +53,15 @@ class GrokSearchTool(BaseTool):
     name: str = "grok_search"
     description: str = "Search for content using Grok API"
     client: Any = None  
+    failure_count: int = 0
+    last_failure_time: Any = None
 
     def __init__(self):
         super().__init__()
         self.client = openai.OpenAI(
             api_key=os.getenv("GROK_API_KEY"),
-            base_url="https://api.x.ai/v1"
+            base_url="https://api.x.ai/v1",
+            timeout=30.0
         )
 
     def _run(self, query: str) -> str:
@@ -68,8 +73,15 @@ class GrokSearchTool(BaseTool):
             str: The search results
         """
         max_retries = 3
+        
+        if self.failure_count > 5:
+            cooldown = min(60, self.failure_count * 5)
+            logger.warning(f"Too many failures ({self.failure_count}), cooling down for {cooldown}s")
+            time.sleep(cooldown)
+            
         for attempt in range(max_retries):
             try:
+                logger.info(f"Executing Grok search attempt {attempt+1}/{max_retries}: {query}")
                 completion = self.client.chat.completions.create(
                     model="grok-3-beta",
                     messages=[
@@ -92,16 +104,23 @@ class GrokSearchTool(BaseTool):
                 
                 content = completion.choices[0].message.content
                 if not content or content.strip() == "":
+                    self.failure_count += 1
                     if attempt < max_retries - 1:
                         logger.warning(f"Empty response received on attempt {attempt + 1}, retrying...")
+                        time.sleep(2 * (attempt + 1))
                         continue
                     return "No relevant information found. Please try a different query or check back later."
                 
+                self.failure_count = 0
+                self.last_failure_time = None
                 return content
 
             except Exception as e:
+                self.failure_count += 1
+                self.last_failure_time = datetime.now()
                 logger.error(f"Error executing Grok search (attempt {attempt + 1}): {e}")
                 if attempt < max_retries - 1:
+                    time.sleep(3 * (attempt + 1))
                     continue
                 return f"Error executing Grok search after {max_retries} attempts: {str(e)}"
 
