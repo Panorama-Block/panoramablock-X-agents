@@ -445,14 +445,34 @@ def process_avax_daily_tweets():
 
         cleanup_old_images()
 
-        result = Agents().avax_crew().kickoff()
-
-        if hasattr(result, "raw"):
-            tweet_text = result.raw
-        elif isinstance(result, list) and len(result) > 0:
-            tweet_text = result[-1].raw
+        max_retries = 3
+        result = None
+        
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"AVAX agent attempt {attempt+1}/{max_retries}")
+                result = Agents().avax_crew().kickoff()
+                
+                if result:
+                    logger.info("AVAX agent returned a valid result")
+                    break
+                    
+                logger.warning(f"Attempt {attempt+1}: Empty response from AVAX agent")
+                time.sleep(5)
+            except Exception as e:
+                logger.error(f"Error in attempt {attempt+1}: {str(e)}")
+                time.sleep(5)
+        
+        if not result:
+            logger.error("All attempts failed, using fallback content")
+            tweet_text = "ZicoAvax AI is currently experiencing technical difficulties. We'll be back with AVAX updates soon!"
         else:
-            tweet_text = str(result)
+            if hasattr(result, "raw"):
+                tweet_text = result.raw
+            elif isinstance(result, list) and len(result) > 0:
+                tweet_text = result[-1].raw
+            else:
+                tweet_text = str(result)
 
         tweet_text = tweet_text.strip()
         header = "ZicoAvax AI here 🤩 this is Avalanche (AVAX) news on X:"
@@ -501,6 +521,19 @@ def process_avax_daily_tweets():
     except Exception as e:
         logger.error(f"Error during AVAX tweet processing: {e}")
         raise
+
+
+def safely_execute(func):
+    """
+    Wrapper for safely executing functions
+    """
+    def wrapper():
+        try:
+            return func()
+        except Exception as e:
+            logger.error(f"Error executing {func.__name__}: {e}")
+            return None
+    return wrapper
 
 
 def cleanup_old_images():
@@ -557,16 +590,16 @@ def run():
     
     # Avax
     schedule.every().hour.at(":00").do(
-        lambda: should_run_task(7) and process_avax_daily_tweets()
+        lambda: should_run_task(7) and safely_execute(process_avax_daily_tweets)
     )
     schedule.every().hour.at(":00").do(
-        lambda: should_run_task(13) and process_avax_daily_tweets()
+        lambda: should_run_task(13) and safely_execute(process_avax_daily_tweets)
     )
     schedule.every().hour.at(":00").do(
-        lambda: should_run_task(19) and process_avax_daily_tweets()
+        lambda: should_run_task(19) and safely_execute(process_avax_daily_tweets)
     )
     schedule.every().hour.at(":00").do(
-        lambda: should_run_task(23) and process_avax_daily_tweets()
+        lambda: should_run_task(23) and safely_execute(process_avax_daily_tweets)
     )
 
     # process_daily_tweets()
