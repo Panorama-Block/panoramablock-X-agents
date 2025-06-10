@@ -602,8 +602,8 @@ def run():
         lambda: should_run_task(23) and safely_execute(process_avax_daily_tweets)
     )
 
-    # process_daily_tweets()
-    # process_avax_daily_tweets()
+    process_daily_tweets()
+    process_avax_daily_tweets()
 
     logger.info("Scheduler iniciado. Aguardando execução...")
 
