@@ -447,6 +447,7 @@ def process_avax_daily_tweets():
 
         cleanup_old_images()
 
+        max_retries = 3
         result = None
         
         for attempt in range(max_retries):
