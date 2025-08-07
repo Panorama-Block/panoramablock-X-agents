@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from contextlib import contextmanager
 from gridfs import GridFS
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
 from agents.crew import Agents
@@ -26,7 +26,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+load_dotenv(dotenv_path=find_dotenv(".env"))
+
+load_dotenv(dotenv_path=find_dotenv(".env.local"), override=True)
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = "twitter_db"
