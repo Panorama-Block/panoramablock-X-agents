@@ -449,18 +449,20 @@ def process_avax_daily_tweets():
 
         result = None
         
-        try:
-            logger.info("AVAX agent attempt")
-            result = Agents().avax_crew().kickoff()
-            
-            if result:
-                logger.info("AVAX agent returned a valid result")
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"AVAX agent attempt {attempt+1}/{max_retries}")
+                result = Agents().avax_crew().kickoff()
+                
+                if result:
+                    logger.info("AVAX agent returned a valid result")
+                    break
                     
-            logger.warning("Empty response from AVAX agent")
-            time.sleep(5)
-        except Exception as e:
-            logger.error(f"Error in attempt: {str(e)}")
-            time.sleep(5)
+                logger.warning(f"Attempt {attempt+1}: Empty response from AVAX agent")
+                time.sleep(5)
+            except Exception as e:
+                logger.error(f"Error in attempt {attempt+1}: {str(e)}")
+                time.sleep(5)
         
         if not result:
             logger.error("All attempts failed, using fallback content")
@@ -490,12 +492,7 @@ def process_avax_daily_tweets():
         }
         
         logger.info("Generating image for the AVAX tweet")
-        
-        try:
-            image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
-        except Exception as e:
-            logger.error(f"Error generating image for the AVAX tweet: {e}")
-            image_agent = None
+        image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
 
         logger.info(f"Image generation result: {image_agent}")
 
