@@ -573,7 +573,7 @@ def should_run_task(scheduled_utc_hour: int) -> bool:
     return utc_now.hour == scheduled_utc_hour
 
 
-def run(process_type=None):
+def run():
     """
     Configure and run the scheduler
     
@@ -583,6 +583,7 @@ def run(process_type=None):
     warnings.filterwarnings("ignore")
     logging.basicConfig(level=logging.INFO)
 
+    process_type = os.getenv("PROCESS_TYPE")
     if process_type is None or process_type.lower() == 'zico':
         process_daily_tweets()
     
@@ -635,7 +636,4 @@ def test():
     
 
 if __name__ == "__main__":
-    env_vars = dotenv_values(".env")
-    process_type = os.getenv("PROCESS_TYPE") or env_vars.get("PROCESS_TYPE")
-    
-    run(process_type)
+    run()
