@@ -633,8 +633,8 @@ def test():
     
 
 if __name__ == "__main__":
-    # Check if a process type is specified as a command-line argument
-    if len(sys.argv) > 1 and sys.argv[1] in ['zico', 'avax']:
-        run(sys.argv[1])
-    else:
+    process_type = os.getenv("PROCESS_TYPE")
+    if process_type is None:
         run()
+    else:
+        run(process_type)
