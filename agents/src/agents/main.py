@@ -445,23 +445,20 @@ def process_avax_daily_tweets():
 
         cleanup_old_images()
 
-        max_retries = 3
         result = None
         
-        for attempt in range(max_retries):
-            try:
-                logger.info(f"AVAX agent attempt {attempt+1}/{max_retries}")
-                result = Agents().avax_crew().kickoff()
-                
-                if result:
-                    logger.info("AVAX agent returned a valid result")
-                    break
+        try:
+            logger.info("AVAX agent attempt")
+            result = Agents().avax_crew().kickoff()
+            
+            if result:
+                logger.info("AVAX agent returned a valid result")
                     
-                logger.warning(f"Attempt {attempt+1}: Empty response from AVAX agent")
-                time.sleep(5)
-            except Exception as e:
-                logger.error(f"Error in attempt {attempt+1}: {str(e)}")
-                time.sleep(5)
+            logger.warning("Empty response from AVAX agent")
+            time.sleep(5)
+        except Exception as e:
+            logger.error(f"Error in attempt: {str(e)}")
+            time.sleep(5)
         
         if not result:
             logger.error("All attempts failed, using fallback content")
@@ -491,7 +488,12 @@ def process_avax_daily_tweets():
         }
         
         logger.info("Generating image for the AVAX tweet")
-        image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
+        
+        try:
+            image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
+        except Exception as e:
+            logger.error(f"Error generating image for the AVAX tweet: {e}")
+            image_agent = None
 
         logger.info(f"Image generation result: {image_agent}")
 
@@ -569,48 +571,23 @@ def should_run_task(scheduled_utc_hour: int) -> bool:
     return utc_now.hour == scheduled_utc_hour
 
 
-def run():
+def run(process_type=None):
     """
     Configure and run the scheduler
-    """
-
-    # Zico
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(6) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(12) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(18) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(22) and process_daily_tweets()
-    )
     
-    # Avax
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(7) and process_avax_daily_tweets
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(13) and process_avax_daily_tweets
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(19) and process_avax_daily_tweets
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(23) and process_avax_daily_tweets
-    )
+    Args:
+        process_type (str, optional): Type of process to run. Options: 'zico', 'avax', or None (run both).
+    """
+    warnings.filterwarnings("ignore")
+    logging.basicConfig(level=logging.INFO)
 
-    process_daily_tweets()
-    process_avax_daily_tweets()
+    if process_type is None or process_type.lower() == 'zico':
+        process_daily_tweets()
+    
+    if process_type is None or process_type.lower() == 'avax':
+        process_avax_daily_tweets()
 
     logger.info("Scheduler iniciado. Aguardando execução...")
-
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
-
 
 def train():
     """
@@ -656,5 +633,8 @@ def test():
     
 
 if __name__ == "__main__":
-    run()
-
+    # Check if a process type is specified as a command-line argument
+    if len(sys.argv) > 1 and sys.argv[1] in ['zico', 'avax']:
+        run(sys.argv[1])
+    else:
+        run()
