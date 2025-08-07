@@ -633,8 +633,7 @@ def test():
     
 
 if __name__ == "__main__":
-    process_type = os.getenv("PROCESS_TYPE")
-    if process_type is None:
-        run()
-    else:
-        run(process_type)
+    env_vars = dotenv_values(".env")
+    process_type = os.getenv("PROCESS_TYPE") or env_vars.get("PROCESS_TYPE")
+    
+    run(process_type)
