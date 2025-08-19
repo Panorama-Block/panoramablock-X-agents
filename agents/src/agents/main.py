@@ -233,12 +233,12 @@ def save_tweet_to_db(tweet, type="zico"):
             if type == "avax":
                 collection = db[TWEETS_AVAX_COLLECTION]
 
-            image_path = "image.png"
-            if os.path.exists(image_path):
-                image_id = save_image_to_gridfs(image_path)
-                tweet["image_id"] = image_id
-                os.remove(image_path)
-                logger.info("Local image removed after saving to GridFS")
+            # image_path = "image.png"
+            # if os.path.exists(image_path):
+            #     image_id = save_image_to_gridfs(image_path)
+            #     tweet["image_id"] = image_id
+            #     os.remove(image_path)
+            #     logger.info("Local image removed after saving to GridFS")
 
             result = collection.insert_one(tweet)
             logger.info(f"Tweet saved to MongoDB with id: {result.inserted_id}")
@@ -635,3 +635,4 @@ def test():
 
 if __name__ == "__main__":
     run()
+
