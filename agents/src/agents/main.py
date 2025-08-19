@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from contextlib import contextmanager
 from gridfs import GridFS
 
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, OperationFailure
 from agents.crew import Agents
@@ -26,7 +26,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-load_dotenv()
+load_dotenv(dotenv_path=find_dotenv(".env"))
+
+load_dotenv(dotenv_path=find_dotenv(".env.local"), override=True)
 
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
 DB_NAME = "twitter_db"
@@ -231,12 +233,12 @@ def save_tweet_to_db(tweet, type="zico"):
             if type == "avax":
                 collection = db[TWEETS_AVAX_COLLECTION]
 
-            image_path = "image.png"
-            if os.path.exists(image_path):
-                image_id = save_image_to_gridfs(image_path)
-                tweet["image_id"] = image_id
-                os.remove(image_path)
-                logger.info("Local image removed after saving to GridFS")
+            # image_path = "image.png"
+            # if os.path.exists(image_path):
+            #     image_id = save_image_to_gridfs(image_path)
+            #     tweet["image_id"] = image_id
+            #     os.remove(image_path)
+            #     logger.info("Local image removed after saving to GridFS")
 
             result = collection.insert_one(tweet)
             logger.info(f"Tweet saved to MongoDB with id: {result.inserted_id}")
@@ -572,45 +574,21 @@ def should_run_task(scheduled_utc_hour: int) -> bool:
 def run():
     """
     Configure and run the scheduler
-    """
-
-    # Zico
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(6) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(12) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(18) and process_daily_tweets()
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(22) and process_daily_tweets()
-    )
     
-    # Avax
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(7) and safely_execute(process_avax_daily_tweets)
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(13) and safely_execute(process_avax_daily_tweets)
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(19) and safely_execute(process_avax_daily_tweets)
-    )
-    schedule.every().hour.at(":00").do(
-        lambda: should_run_task(23) and safely_execute(process_avax_daily_tweets)
-    )
+    Args:
+        process_type (str, optional): Type of process to run. Options: 'zico', 'avax', or None (run both).
+    """
+    warnings.filterwarnings("ignore")
+    logging.basicConfig(level=logging.INFO)
 
-    process_daily_tweets()
-    process_avax_daily_tweets()
+    process_type = os.getenv("PROCESS_TYPE")
+    if process_type is None or process_type.lower() == 'zico':
+        process_daily_tweets()
+    
+    if process_type is None or process_type.lower() == 'avax':
+        process_avax_daily_tweets()
 
     logger.info("Scheduler iniciado. Aguardando execução...")
-
-    while True:
-        schedule.run_pending()
-        time.sleep(60)
-
 
 def train():
     """
@@ -657,3 +635,4 @@ def test():
 
 if __name__ == "__main__":
     run()
+
