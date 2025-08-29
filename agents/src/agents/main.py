@@ -35,7 +35,7 @@ DB_NAME = "twitter_db"
 TWEETS_COLLECTION = "tweets"
 TWEETS_ZICO_COLLECTION = "tweets_zico"
 TWEETS_AVAX_COLLECTION = "tweets_avax"
-
+TWEETS_HEDERA_COLLECTION = "tweets_hedera"
 
 @contextmanager
 def get_mongo_client():
@@ -524,6 +524,91 @@ def process_avax_daily_tweets():
         logger.error(f"Error during AVAX tweet processing: {e}")
         raise
 
+def process_hedera_daily_tweets():
+    """
+    Main function to be executed daily for Hedera research and tweet generation
+    """
+    try:
+        logger.info("Starting daily Hedera tweet processing")
+
+        cleanup_old_images()
+
+        max_retries = 3
+        result = None
+        
+        for attempt in range(max_retries):
+            try:
+                logger.info(f"Hedera agent attempt {attempt+1}/{max_retries}")
+                result = Agents().hedera_crew().kickoff()
+                
+                if result:
+                    logger.info("Hedera agent returned a valid result")
+                    break
+                    
+                logger.warning(f"Attempt {attempt+1}: Empty response from Hedera agent")
+                time.sleep(5)
+            except Exception as e:
+                logger.error(f"Error in attempt {attempt+1}: {str(e)}")
+                time.sleep(5)
+        
+        if not result:
+            logger.error("All attempts failed, using fallback content")
+            tweet_text = "ZicoAvax AI is currently experiencing technical difficulties. We'll be back with AVAX updates soon!"
+        else:
+            if hasattr(result, "raw"):
+                tweet_text = result.raw
+            elif isinstance(result, list) and len(result) > 0:
+                tweet_text = result[-1].raw
+            else:
+                tweet_text = str(result)
+
+        tweet_text = tweet_text.strip()
+        header = "ZicoAvax AI here 🤩 this is Hedera (HBAR) news on X:"
+        tweet_parts = split_tweet_in_parts(tweet_text, header)
+
+        logger.info(f"Generated Hedera tweet (in {len(tweet_parts)} parts):")
+        for part in tweet_parts:
+            logger.info(f"Part: {part}")
+
+        generated_tweet = {
+            "original_text": tweet_text,
+            "parts": tweet_parts,
+            "created_at_datetime": datetime.now(),
+            "posted": False,
+            "type": "hedera",
+        }
+        
+        logger.info("Generating image for the Hedera tweet")
+        image_agent = Agents().image_crew().kickoff(inputs={"text": tweet_parts[0]})
+
+        logger.info(f"Image generation result: {image_agent}")
+
+        save_tweet_to_db(generated_tweet, type="hedera")
+        
+        # report_path = Path(__file__).resolve().parents[2] / "hedera_report.md"
+        # if not report_path.exists():
+        #     raise FileNotFoundError(f"hedera_report.md not found at {report_path}")
+
+        # with open(report_path, "r", encoding="utf-8") as f:
+        #     report_text = f.read()
+            
+        # save_report_to_vector_db(
+        #     report_text,
+        #     metadata={
+        #         "date": datetime.now().isoformat(),
+        #         "network": "avax",
+        #         "agent_id": "avax_daily_agent",
+        #         "report_type": "daily_research",
+        #     },
+        # )
+
+        logger.info("Daily Hedera tweet processing completed successfully")
+
+        return tweet_text, image_agent
+
+    except Exception as e:
+        logger.error(f"Error during Hedera tweet processing: {e}")
+        raise
 
 def safely_execute(func):
     """
@@ -587,6 +672,9 @@ def run():
     
     if process_type is None or process_type.lower() == 'avax':
         process_avax_daily_tweets()
+
+    if process_type is None or process_type.lower() == 'hedera':
+        process_hedera_daily_tweets()
 
     logger.info("Scheduler iniciado. Aguardando execução...")
 

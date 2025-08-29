@@ -92,6 +92,37 @@ avax_research_task:
     Focus on factual information and avoid speculation.
   agent: avax_researcher
 
+hedera_research_task:
+  description: >
+    Research and analyze the latest developments about Hedera (HBAR).
+    Focus on gathering information about:
+    - Price and market cap
+    - Recent network developments and updates
+    - Performance metrics and network statistics
+    - DeFi projects and ecosystem growth
+    - Market trends and analysis
+    - New partnerships and integrations
+    - Developer activity and community updates
+
+    After each search:
+    1. Think about what information you received
+    2. Process and analyze the data
+    3. Format your response as a clear summary
+    4. Never return raw search results
+
+    Your final response should be a concise, well-structured analysis.
+  expected_output: >
+    A comprehensive analysis of Hedera's current state, focusing on:
+    - Current price, market cap, and 24h trading volume
+    - Recent price movements and market trends
+    - Network performance metrics (TPS, active addresses, etc)
+    - Latest news and announcements from the Hedera team
+    - Recent partnerships or integrations that impact the network
+    - Major updates or changes to the network
+    Focus on factual information and avoid speculation.
+  agent: hedera_researcher
+
+
 image_generation_task:
   description: >
     Generate images for the first part of the tweet thread.
