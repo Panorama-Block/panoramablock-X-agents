@@ -233,6 +233,9 @@ def save_tweet_to_db(tweet, type="zico"):
             if type == "avax":
                 collection = db[TWEETS_AVAX_COLLECTION]
 
+            if type == "hedera":
+                collection = db[TWEETS_HEDERA_COLLECTION]
+
             image_path = "image.png"
             if os.path.exists(image_path):
                 image_id = save_image_to_gridfs(image_path)
@@ -596,8 +599,8 @@ def process_hedera_daily_tweets():
         #     report_text,
         #     metadata={
         #         "date": datetime.now().isoformat(),
-        #         "network": "avax",
-        #         "agent_id": "avax_daily_agent",
+        #         "network": "hedera",
+        #         "agent_id": "hedera_daily_agent",
         #         "report_type": "daily_research",
         #     },
         # )
@@ -723,5 +726,3 @@ def test():
 
 if __name__ == "__main__":
     run()
-
-
