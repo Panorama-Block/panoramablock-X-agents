@@ -102,7 +102,8 @@ class Agents():
 	@task
 	def hedera_reporting_task(self) -> Task:
 		return Task(
-			config=self.tasks_config['hedera_reporting_task']
+			config=self.tasks_config['reporting_task'],
+			output_file='hedera_report.md'
 		)
   
 	@task
