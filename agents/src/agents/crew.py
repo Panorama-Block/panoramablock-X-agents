@@ -34,6 +34,14 @@ class Agents():
 		)
 
 	@agent
+	def hedera_researcher(self) -> Agent:
+		return Agent(
+			config=self.agents_config['hedera_researcher'],
+			tools=[GrokSearchTool()],
+			verbose=True
+		)
+
+	@agent
 	def reporting_analyst(self) -> Agent:
 		return Agent(
 			config=self.agents_config['reporting_analyst'],
@@ -72,6 +80,12 @@ class Agents():
 		)
 
 	@task
+	def hedera_research_task(self) -> Task:
+		return Task(
+			config=self.tasks_config['hedera_research_task']
+		)
+
+	@task
 	def reporting_task(self) -> Task:
 		return Task(
 			config=self.tasks_config['reporting_task'],
@@ -86,9 +100,9 @@ class Agents():
 		)
 
 	@task
-	def hedera_research_task(self) -> Task:
+	def hedera_reporting_task(self) -> Task:
 		return Task(
-			config=self.tasks_config['hedera_research_task']
+			config=self.tasks_config['hedera_reporting_task']
 		)
   
 	@task
