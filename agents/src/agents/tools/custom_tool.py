@@ -105,7 +105,7 @@ class GrokSearchTool(BaseTool):
                         },
                         {
                             "role": "user", 
-                            "content": f"Search and provide specific information about: {query}\nFocus only on recent and verified information about this topic in the context of Avalanche (AVAX)."
+                            "content": f"Search and provide specific information about: {query}\nFocus only on recent and verified information about this topic in the context of {self.search_type}."
                         }
                     ],
                     max_tokens=500,
