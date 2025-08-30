@@ -14,6 +14,7 @@ from datetime import datetime
 load_dotenv()
 api_key = os.getenv("GEMINI_API_KEY")
 grok_api_key = os.getenv("GROK_API_KEY")
+agent = os.getenv("PROCCESS_TYPE")
 
 client = genai.Client(api_key=api_key)
 
@@ -56,6 +57,15 @@ class GrokSearchTool(BaseTool):
     failure_count: int = 0
     last_failure_time: Any = None
 
+    search_type: str = ""
+
+    if agent == "zico":
+        search_type = "Zico"
+    elif agent == "avax":
+        search_type = "Avalanche (AVAX)"
+    elif agent == "hedera":
+        search_type = "Hedera (HBAR)"
+
     def __init__(self):
         super().__init__()
         self.client = openai.OpenAI(
@@ -87,7 +97,7 @@ class GrokSearchTool(BaseTool):
                     messages=[
                         {
                             "role": "system", 
-                            "content": """You are a research assistant focused on Avalanche (AVAX). 
+                            "content": """You are a research assistant focused on {self.search_type}. 
                             Search and analyze only the specific information requested.
                             Provide factual, data-driven insights based on real-time information.
                             Keep responses focused and relevant to the query.
