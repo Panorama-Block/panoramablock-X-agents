@@ -84,6 +84,12 @@ class Agents():
 			config=self.tasks_config['reporting_task'],
 			output_file='avax_report.md'
 		)
+
+	@task
+	def hedera_research_task(self) -> Task:
+		return Task(
+			config=self.tasks_config['hedera_research_task']
+		)
   
 	@task
 	def twitter_redaction_task(self) -> Task:
@@ -138,6 +144,23 @@ class Agents():
 			tasks=[
 				self.avax_research_task(), 
 				self.avax_reporting_task(), 
+				self.twitter_redaction_task(),
+			],
+			process=Process.sequential
+		)
+
+	@crew
+	def hedera_crew(self) -> Crew:
+		"""Creates the Hedera Research and Analysis crew"""
+		return Crew(
+			agents=[
+				self.hedera_researcher(), 
+				self.reporting_analyst(), 
+				self.twitter_redactor()
+			],
+			tasks=[
+				self.hedera_research_task(), 
+				self.hedera_reporting_task(), 
 				self.twitter_redaction_task(),
 			],
 			process=Process.sequential
