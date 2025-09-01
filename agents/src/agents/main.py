@@ -556,7 +556,7 @@ def process_hedera_daily_tweets():
         
         if not result:
             logger.error("All attempts failed, using fallback content")
-            tweet_text = "ZicoAvax AI is currently experiencing technical difficulties. We'll be back with AVAX updates soon!"
+            tweet_text = "ZicoHedera AI is currently experiencing technical difficulties. We'll be back with Hedera updates soon!"
         else:
             if hasattr(result, "raw"):
                 tweet_text = result.raw
@@ -566,7 +566,7 @@ def process_hedera_daily_tweets():
                 tweet_text = str(result)
 
         tweet_text = tweet_text.strip()
-        header = "ZicoAvax AI here 🤩 this is Hedera (HBAR) news on X:"
+        header = "ZicoHedera AI here 🤩 this is Hedera (HBAR) news on X:"
         tweet_parts = split_tweet_in_parts(tweet_text, header)
 
         logger.info(f"Generated Hedera tweet (in {len(tweet_parts)} parts):")
